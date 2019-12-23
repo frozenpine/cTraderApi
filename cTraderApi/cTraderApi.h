@@ -1044,7 +1044,7 @@ extern "C"
 	///初始化
 	///@param bContinuous 为true表示线程不休眠
 	///@remark 初始化运行环境,只有调用后,接口才开始工作
-	C_API void Init(InstanceID id, const char *pszFlowPath = "", bool bContinuous = false);
+	C_API void Init(InstanceID id, const char *pszFlowPath, bool bContinuous);
 
 	///等待接口线程结束运行
 	///@return 线程退出代码
