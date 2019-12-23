@@ -13,21 +13,30 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{ca6e622c-7fd8-4acd-af93-14ef7eb41b5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\x86">
+      <UniqueIdentifier>{7995e316-7363-4b8e-be9b-50f2e4d54cb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\x64">
+      <UniqueIdentifier>{f04bd6ab-f695-483c-b23a-e22eb989714a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cTraderApi.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\rdqh\06 - 工具\CTP2mini_V1.4.1_win64_api\traderapi\ThostFtdcTraderApi.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\rdqh\06 - 工具\CTP2mini_V1.4.1_win64_api\traderapi\ThostFtdcUserApiDataType.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\rdqh\06 - 工具\CTP2mini_V1.4.1_win64_api\traderapi\ThostFtdcUserApiStruct.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="ThostFtcTraderApiWrapper.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostFtdcTraderApi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostFtdcUserApiDataType.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ThostFtdcUserApiStruct.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,5 +47,21 @@
     <ClCompile Include="ThostFtdcTraderApiWrapper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libs\x86\thosttraderapi.dll">
+      <Filter>libs\x86</Filter>
+    </None>
+    <None Include="libs\x64\thosttraderapi.dll">
+      <Filter>libs\x64</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libs\x86\thosttraderapi.lib">
+      <Filter>libs\x86</Filter>
+    </Library>
+    <Library Include="libs\x64\thosttraderapi.lib">
+      <Filter>libs\x64</Filter>
+    </Library>
   </ItemGroup>
 </Project>
