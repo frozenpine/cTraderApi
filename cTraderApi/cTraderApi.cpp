@@ -2,6 +2,7 @@
 //
 
 #include "ThostFtcTraderApiWrapper.h"
+#include "ThostFtdcTraderApi.h"
 
 C_API void SetCallbackOnFrontConnected(InstanceID id, CbOnFrontConnected handler)
 {

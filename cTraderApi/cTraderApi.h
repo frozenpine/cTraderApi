@@ -1,8 +1,7 @@
-# include <stdint.h>
+#include <stdint.h>
 
-# include "ThostFtdcTraderApi.h"
-# include "ThostFtdcUserApiDataType.h"
-# include "ThostFtdcUserApiStruct.h"
+#include "ThostFtdcUserApiDataType.h"
+#include "ThostFtdcUserApiStruct.h"
 
 #ifdef __GNUC__
 #ifdef CTRADERAPI_EXPORTS
