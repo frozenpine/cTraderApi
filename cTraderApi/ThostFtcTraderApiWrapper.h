@@ -1,5 +1,6 @@
 #pragma once
-# include "cTraderApi.h"
+#include "string.h"
+#include "cTraderApi.h"
 
 class cTraderApi : public CThostFtdcTraderSpi
 {

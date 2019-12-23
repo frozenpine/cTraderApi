@@ -1,7 +1,7 @@
 ﻿// cTraderApi.cpp : 定义 DLL 应用程序的导出函数。
 //
 
-# include "ThostFtcTraderApiWrapper.h"
+#include "ThostFtcTraderApiWrapper.h"
 
 C_API void SetCallbackOnFrontConnected(InstanceID id, CbOnFrontConnected handler)
 {
