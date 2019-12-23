@@ -1121,7 +1121,7 @@ extern "C"
 	C_API int ReqOrderAction(InstanceID id, CThostFtdcInputOrderActionField *pInputOrderAction, int nRequestID);
 
 	///查询最大报单数量请求
-	C_API int C_API ReqQueryMaxOrderVolume(InstanceID id, CThostFtdcQueryMaxOrderVolumeField *pQueryMaxOrderVolume, int nRequestID);
+	C_API int ReqQueryMaxOrderVolume(InstanceID id, CThostFtdcQueryMaxOrderVolumeField *pQueryMaxOrderVolume, int nRequestID);
 
 	///投资者结算结果确认
 	C_API int ReqSettlementInfoConfirm(InstanceID id, CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, int nRequestID);
