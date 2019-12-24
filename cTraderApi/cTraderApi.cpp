@@ -1042,9 +1042,10 @@ C_API void SetCallbackVirtualTable(InstanceID id, callbackVirtualTable *vt)
 	((cTraderApi *)id)->SetCallbackVirtualTable(vt);
 };
 
-C_API InstanceID CreateApi()
+C_API InstanceID CreateApi(const char *pszFlowPath)
 {
-	cTraderApi *api = new cTraderApi;
+	cTraderApi *api = new cTraderApi(pszFlowPath);
+	
 	return (InstanceID)api;
 };
 
@@ -1062,13 +1063,13 @@ C_API void Release(InstanceID id)
 	((cTraderApi *)id)->Release();
 };
 
-C_API void Init(InstanceID id, const char *pszFlowPath, bool bContinuous)
+C_API void Init(InstanceID id, bool bContinuous)
 {
 	if (id == NULL) {
 		throw id;
 	}
 
-	((cTraderApi *)id)->Init(pszFlowPath, bContinuous);
+	((cTraderApi *)id)->Init(bContinuous);
 };
 
 C_API int Join(InstanceID id)

@@ -1032,7 +1032,7 @@ extern "C"
 
 	///创建API接口实例
 	///@return 接口实例号
-	C_API InstanceID CreateApi();
+	C_API InstanceID CreateApi(const char *pszFlowPath);
 
 	///获取API的版本信息
 	///@retrun 获取到的版本号
@@ -1045,7 +1045,7 @@ extern "C"
 	///初始化
 	///@param bContinuous 为true表示线程不休眠
 	///@remark 初始化运行环境,只有调用后,接口才开始工作
-	C_API void Init(InstanceID id, const char *pszFlowPath, bool bContinuous);
+	C_API void Init(InstanceID id, bool bContinuous);
 
 	///等待接口线程结束运行
 	///@return 线程退出代码

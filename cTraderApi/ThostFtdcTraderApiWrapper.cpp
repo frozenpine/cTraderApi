@@ -1,17 +1,20 @@
 # include "ThostFtcTraderApiWrapper.h"
 
+cTraderApi::cTraderApi(const char * pszFlowPath)
+{
+	pApi = CThostFtdcTraderApi::CreateFtdcTraderApi(pszFlowPath);
+
+	pApi->RegisterSpi(this);
+}
+
 const char *cTraderApi::GetApiVersion()
 {
 	return CThostFtdcTraderApi::GetApiVersion();
 }
 
-void cTraderApi::Init(const char *pszFlowPath, bool bContinuous)
+void cTraderApi::Init(bool bContinuous)
 {
-	pApi = CThostFtdcTraderApi::CreateFtdcTraderApi(pszFlowPath);
-
 	pApi->Init(bContinuous);
-
-	pApi->RegisterSpi(this);
 }
 
 void cTraderApi::Release()
