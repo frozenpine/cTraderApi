@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "ThostFtdcUserApiDataType.h"
 #include "ThostFtdcUserApiStruct.h"
@@ -697,7 +698,7 @@ extern "C"
 	typedef void(APPWINAPI *CbOnRtnChangeAccountByBank)(InstanceID id, CThostFtdcChangeAccountField *pChangeAccount);
 	C_API void SetCallbackOnRtnChangeAccountByBank(InstanceID id, CbOnRtnChangeAccountByBank handler);
 
-	typedef struct {
+	typedef struct callbackVirtualTable {
 		///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 		CbOnFrontConnected onFrontConnected;
 
