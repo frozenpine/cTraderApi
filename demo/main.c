@@ -16,6 +16,8 @@ int main() {
 
 	InstanceID id = CreateApi("flow/");
 
+	SetCallbackOnFrontConnected(id, onFrontConnected);
+
 	RegisterFront(id, front);
 
 	SubscribePrivateTopic(id, THOST_TERT_QUICK);
@@ -24,6 +26,8 @@ int main() {
 	Init(id, false);
 
 	Join(id);
+
+	printf("Exit.");
 
 	return 0;
 }
