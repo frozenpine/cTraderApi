@@ -23,7 +23,7 @@
 #define TRADER_API_DLL_EXPORT __attribute__ ((visibility("default")))
 #endif
 #else
-#define TRADER_API_DLL_EXPORT 
+#define TRADER_API_DLL_EXPORT
 #endif
 
 class CThostFtdcTraderSpi
