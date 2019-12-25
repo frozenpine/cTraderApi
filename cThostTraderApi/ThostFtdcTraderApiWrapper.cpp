@@ -2,9 +2,7 @@
 
 cTraderApi::cTraderApi(const char * pszFlowPath)
 {
-	pApi = CThostFtdcTraderApi::CreateFtdcTraderApi(pszFlowPath);
-
-	pApi->RegisterSpi(this);
+	CreateApi(pszFlowPath);
 }
 
 const char *cTraderApi::GetApiVersion()
@@ -20,6 +18,13 @@ void cTraderApi::Init(bool bContinuous)
 void cTraderApi::Release()
 {
 	pApi->Release();
+}
+
+void cTraderApi::CreateApi(const char * pszFlowPath)
+{
+	pApi = CThostFtdcTraderApi::CreateFtdcTraderApi(pszFlowPath);
+
+	pApi->RegisterSpi(this);
 }
 
 int cTraderApi::Join()

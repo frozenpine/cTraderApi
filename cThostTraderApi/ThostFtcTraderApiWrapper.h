@@ -1,7 +1,7 @@
 #pragma once
 #include "string.h"
 
-#include "cTraderApi.h"
+#include "cThostTraderApi.h"
 #include "ThostFtdcTraderApi.h"
 
 class cTraderApi : public CThostFtdcTraderSpi
