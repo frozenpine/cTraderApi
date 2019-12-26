@@ -165,7 +165,7 @@ typedef unsigned char EES_OrderType;
 
 
 /// 登录返回的消息
-struct EES_LogonResponse
+typedef struct EES_LogonResponse
 {
 	EES_LogonResult		m_Result;							///< 参见本文档EES_LogonResult定义
 	EES_UserID			m_UserId;							///< 登录名对应的用户ID
@@ -175,11 +175,11 @@ struct EES_LogonResponse
 	unsigned int		m_OrderFCInterval;					///< 下单流控参数，单位时间内下单次数限制单位时间，微秒值
 	unsigned int		m_CancelFCCount;					///< 撤单流控参数，单位时间内撤单次数限制的次数
 	unsigned int		m_CancelFCInterval;					///< 撤单流控参数，单位时间内撤单次数限制单位时间，微秒值
-};
+} EES_LogonResponse;
 
 
 /// 下单消息
-struct EES_EnterOrderField
+typedef struct EES_EnterOrderField
 { 
 	EES_Account         m_Account;						///< 用户代码
 	EES_SideType        m_Side;							///< 买卖方向
@@ -217,10 +217,10 @@ struct EES_EnterOrderField
 		m_StopPrice = 0.0;
 	}
 
-};
+} EES_EnterOrderField;
 
 /// 下单被柜台系统接受消息
-struct EES_OrderAcceptField
+typedef struct EES_OrderAcceptField
 { 
 	EES_ClientToken     m_ClientOrderToken;				///< 下单的时候，返回给你的token
 	EES_MarketToken     m_MarketOrderToken;				///< 市场里面挂单的token
@@ -240,10 +240,10 @@ struct EES_OrderAcceptField
 	EES_CustomFieldType m_CustomField;					///< 用户下单时指定的值
 	EES_MarketSessionId m_MarketSessionId;				///< 报单送往交易所的席位代码，有可能和下单时指定的不同。不同的原因有：当前该席位尚未连接好；指定的席位代号非法等；指定0：由REM自行决定
 	EES_HedgeFlag		m_HedgeFlag;					///< 投机套利标志
-};
+} EES_OrderAcceptField;
 
 /// 下单被市场接受消息
-struct EES_OrderMarketAcceptField
+typedef struct EES_OrderMarketAcceptField
 {
 	EES_Account       m_Account;          ///< 用户代码
 	EES_MarketToken   m_MarketOrderToken; ///< 盛立系统产生的单子号，和盛立交流时可用该号。
@@ -251,10 +251,10 @@ struct EES_OrderMarketAcceptField
 	EES_Nanosecond    m_MarketTime;       ///< 市场时间信息
 	EES_UserID        m_UserID;			  ///< 订单的 user id 
 	EES_ClientToken   m_ClientOrderToken; ///< 订单的ClientToken
-};
+} EES_OrderMarketAcceptField;
 
 /// 下单被柜台系统拒绝
-struct EES_OrderRejectField
+typedef struct EES_OrderRejectField
 {
 	EES_UserID				m_Userid;			///< 原来单子的用户，对应着LoginID。
 	EES_Nanosecond			m_Timestamp;		///< 从1970年1月1日0时0分0秒开始的纳秒时间，请使用ConvertFromTimestamp接口转换为可读的时间
@@ -265,10 +265,10 @@ struct EES_OrderRejectField
 	EES_RiskResult			m_RiskResult;		///< 风控检查的结果数组，每个字符映射一种检查错误原因，见文件末尾的附录
 	EES_GrammerResultText	m_GrammerText;		///< 语法检查的结果文字描述
 	EES_RiskResultText		m_RiskText;			///< 风控检查的结果文字描述			
-};
+} EES_OrderRejectField;
 
 /// 下单被市场拒绝
-struct EES_OrderMarketRejectField
+typedef struct EES_OrderMarketRejectField
 {
 	EES_Account     m_Account;           ///< 用户代码
 	EES_MarketToken m_MarketOrderToken;	 ///< 盛立系统产生的单子号，和盛立交流时可用该号。
@@ -276,10 +276,10 @@ struct EES_OrderMarketRejectField
 	EES_ReasonText  m_ReasonText;		 ///< 交易所返回的错误字符串，GB2312编码
 	EES_UserID      m_UserID;			 ///< 订单的 user id 
 	EES_ClientToken m_ClientOrderToken;  ///< 订单的ClientToken
-};
+} EES_OrderMarketRejectField;
 
 /// 订单成交消息体
-struct EES_OrderExecutionField
+typedef struct EES_OrderExecutionField
 {
 	EES_UserID        m_Userid;							///< 原来单子的用户，对应着LoginID。
 	EES_Nanosecond    m_Timestamp;						///< 成交时间，从1970年1月1日0时0分0秒开始的纳秒时间
@@ -289,20 +289,20 @@ struct EES_OrderExecutionField
 	double            m_Price;							///< 单子成交价
 	EES_MarketToken   m_ExecutionID;					///< 单子成交号(TAG 1017)
 	EES_MarketExecId  m_MarketExecID;					///< 交易所成交号
-};
+} EES_OrderExecutionField;
 
 /// 下单撤单指令
-struct EES_CancelOrder
+typedef struct EES_CancelOrder
 {
 	EES_MarketToken m_MarketOrderToken;					///< 盛立系统产生的单子号，和盛立交流时可用该号。
 	unsigned int    m_Quantity;							///< 这是该单子被取消后所希望剩下的数量，如为0，改单子为全部取消。在中国目前必须填0，其他值当0处理。
 	EES_Account     m_Account;							///< 帐户ID号
 	EES_MarketSessionId m_MarketSessionId;				///< 交易所席位代码，从OnResponseQueryMarketSessionId获取合法值，如果填入0或者其他非法值，REM系统将自行决定送单的席位	，除非m_ForceMarketSessionId为true	
 	unsigned char	m_ForceMarketSessionId;				///< 如果为1，当客户指定席位代码，但是该席位不可用或者非法时，指示服务器不要自行决定送单席位，而是拒绝下单
-};
+} EES_CancelOrder;
 
 /// 订单撤销完成
-struct EES_OrderCxled
+typedef struct EES_OrderCxled
 { 
 	EES_UserID        m_Userid;							///< 原来单子的用户，对应着LoginID。
 	EES_Nanosecond    m_Timestamp;						///< 撤单时间，从1970年1月1日0时0分0秒开始的纳秒时间，请使用ConvertFromTimestamp接口转换为可读的时间
@@ -310,10 +310,10 @@ struct EES_OrderCxled
 	EES_MarketToken   m_MarketOrderToken;				///< 盛立系统产生的单子号，和盛立交流时可用该号。
 	unsigned int      m_Decrement;						///< 这次信息所取消的单子量
 	EES_CxlReasonCode m_Reason;							///< 原因，见下表
-};
+} EES_OrderCxled;
 
 /// 查询订单的结构
-struct EES_QueryAccountOrder
+typedef struct EES_QueryAccountOrder
 {
 	EES_UserID			m_Userid;						///< 原来单子的用户，对应着LoginID。
 	EES_Nanosecond		m_Timestamp;					///< 订单创建时间，从1970年1月1日0时0分0秒开始的纳秒时间，请使用ConvertFromTimestamp接口转换为可读的时间
@@ -335,9 +335,10 @@ struct EES_QueryAccountOrder
 	EES_CustomFieldType m_CustomField;					///< 用户下单时指定的值
 	EES_MarketOrderId	m_MarketOrderId;				///< 交易所单号
 	EES_HedgeFlag		m_HedgeFlag;					///< 投机套利标志
-};
+} EES_QueryAccountOrder;
+
 /// 查询订单成交的结构
-struct EES_QueryOrderExecution
+typedef struct EES_QueryOrderExecution
 {
 	EES_UserID			m_Userid;						///< 原来单子的用户，对应着LoginID。
 	EES_Nanosecond		m_Timestamp;					///< 成交时间，从1970年1月1日0时0分0秒开始的纳秒时间，请使用ConvertFromTimestamp接口转换为可读的时间
@@ -347,16 +348,16 @@ struct EES_QueryOrderExecution
 	double				m_ExecutionPrice;				///< 单子成交价
 	EES_MarketToken		m_ExecutionID;					///< 单子成交号(TAG 1017)
 	EES_MarketExecId	m_MarketExecID;					///< 交易所成交号
-};
+} EES_QueryOrderExecution;
 
 /// 当一个账户的所有订单和成交都回滚完成后的消息
-struct EES_QueryAccountTradeFinish
+typedef struct EES_QueryAccountTradeFinish
 {
 	EES_Account			m_account;						///< 账户ID
-};
+} EES_QueryAccountTradeFinish;
 
 /// 帐户信息基本信息
-struct EES_AccountInfo
+typedef struct EES_AccountInfo
 {
 	EES_Account			m_Account;						///< 帐户ID 
 	EES_Previlege		m_Previlege;					///< 操作权限，目前硬件暂不支持，也就是说都是完全操作权限 99：完全操作  1：只读 2：只平仓
@@ -366,10 +367,10 @@ struct EES_AccountInfo
 	double				m_FrozenMargin;					///< 所有挂单冻结的保证金
 	double				m_CommissionFee;				///< 已扣除的手续费总金额
 	double				m_FrozenCommission;				///< 挂单冻结的总手续费金额
-};
+} EES_AccountInfo;
 
 /// 帐户的仓位信息
-struct EES_AccountPosition
+typedef struct EES_AccountPosition
 {
 	EES_Account			m_actId;						///< Value  Notes
 	EES_Symbol			m_Symbol;						///< 合约名称/股票代码
@@ -383,9 +384,9 @@ struct EES_AccountPosition
 	double				m_TodayMargin;					///< 今仓占用的保证金
 	double				m_PositionCost;
 	EES_HedgeFlag		m_HedgeFlag;					///< 仓位对应的投机套利标志
-};
+} EES_AccountPosition;
 
-struct EES_AccountOptionPosition
+typedef struct EES_AccountOptionPosition
 {
 	EES_Account			m_actId;						///< Value  Notes
 	EES_Symbol			m_Symbol;						///< 合约名称/股票代码
@@ -404,10 +405,10 @@ struct EES_AccountOptionPosition
 	double				m_AvgPrice;	
 	double				m_TotalCommissionFee;
 	EES_HedgeFlag		m_HedgeFlag;					///< 仓位对应的投机套利标志
-};
+} EES_AccountOptionPosition;
 
 /// 帐户的仓位信息
-struct EES_AccountBP
+typedef struct EES_AccountBP
 {
 	EES_Account			m_account;						///< Value  Notes
 	double				m_InitialBp;					///< 初始权益
@@ -419,10 +420,10 @@ struct EES_AccountBP
 	double				m_OvnInitMargin;				///< 初始昨仓保证金
 	double				m_TotalLiquidPL;				///< 总平仓盈亏
 	double				m_TotalMarketPL;				///< 总持仓盈亏
-};
+} EES_AccountBP;
 
 /// 合约列表
-struct EES_SymbolField
+typedef struct EES_SymbolField
 {
 	EES_SecType			m_SecType;						///< 3=Future，目前仅支持期货
 	EES_Symbol			m_symbol;						///< 合约名称/股票代码
@@ -447,10 +448,10 @@ struct EES_SymbolField
 	double				m_StrikePrice;					///< 期权合约的执行价, 期货该值为0
 	char				m_CallPut;						///< 期权是认沽还是认购
 	EES_Symbol			m_UnderlyingSymbol;				///< 期权标的物期货合约
-};
+} EES_SymbolField;
 
 /// 查询帐户的保证金率
-struct EES_AccountMargin
+typedef struct EES_AccountMargin
 {
 	EES_SecType			m_SecType;						///< 3=Future，目前仅支持期货
 	EES_Symbol			m_symbol;						///< 合约名称/股票代码
@@ -458,10 +459,10 @@ struct EES_AccountMargin
 	EES_ProductID		m_ProdID;						///< 4  Alpha 产品代码
 	double				m_LongMarginRatio;				///< 多仓保证金率
 	double				m_ShortMarginRatio;				///< 空仓保证金率，目前用不上
-};
+} EES_AccountMargin;
 
 /// 帐户合约费率查询
-struct EES_AccountFee
+typedef struct EES_AccountFee
 {
 	EES_SecType			m_SecType;						///<  3=Future，目前仅支持期货
 	EES_Symbol			m_symbol;						///<  合约名称/股票代码
@@ -474,10 +475,10 @@ struct EES_AccountFee
 	double				m_CloseTodayRatioByMoney;		///<  平今手续费率，按照金额
 	double				m_CloseTodayRatioByVolume;		///<  平今手续费率，按照手数
 	EES_PosiDirection	m_PositionDir;					///<  1: 多头；2: 空头
-};
+} EES_AccountFee;
 
 /// 撤单被拒绝的消息体
-struct EES_CxlOrderRej
+typedef struct EES_CxlOrderRej
 {
 	EES_Account			m_account;						///< 客户帐号. 
 	EES_MarketToken		m_MarketOrderToken;				///< 盛立内部用的orderID
@@ -486,10 +487,10 @@ struct EES_CxlOrderRej
 	EES_UserID			m_UserID;						///< 要撤订单的 user id，如果是因为找不到原订单，则为0
 	EES_ClientToken		m_ClientOrderToken;				///< 要撤订单的ClientToken，如果是因为找不到原订单，则为0
 	EES_ExchangeID		m_ExchangeID;					///< 撤单拒绝的源，0=柜台直接拒绝。102/103/104等值，表示交易所的撤单拒绝错误码
-};
+} EES_CxlOrderRej;
 
 /// 被动订单
-struct EES_PostOrder
+typedef struct EES_PostOrder
 {
 	EES_UserID			m_Userid;						///< 原来单子的用户，对应着LoginID。
 	EES_Nanosecond		m_Timestamp;					///< 订单创建时间，从1970年1月1日0时0分0秒开始的纳秒时间，请使用ConvertFromTimestamp接口转换为可读的时间
@@ -506,10 +507,10 @@ struct EES_PostOrder
 	EES_OrderState		m_OrderState;					///< 单子状态，绝大多时候是1，但是也有可能是2.    1=order live（单子活着）    2=order dead（单子死了）
 	EES_MarketOrderId	m_ExchangeOrderID;				///< 交易所单号，如果是人工被动单，该值为空白
 	EES_HedgeFlag		m_HedgeFlag;					///< 投机套利标志
-};
+} EES_PostOrder;
 
 /// 被动成交
-struct EES_PostOrderExecution
+typedef struct EES_PostOrderExecution
 {
 	EES_UserID			m_Userid;						///< 原来单子的用户，对应着LoginID。
 	EES_Nanosecond		m_Timestamp;					///< 被动成交时间，从1970年1月1日0时0分0秒开始的纳秒时间，请使用ConvertFromTimestamp接口转换为可读的时间
@@ -517,17 +518,17 @@ struct EES_PostOrderExecution
 	unsigned int		m_ExecutedQuantity;				///< 单子成交量
 	double				m_ExecutionPrice;				///< 单子成交价
 	EES_MarketToken		m_ExecutionNumber;				///< 单子成交号
-};
+} EES_PostOrderExecution;
 
 
-struct EES_ExchangeMarketSession
+typedef struct EES_ExchangeMarketSession
 {	
 	EES_ExchangeID			m_ExchangeID;					///< 102=中金所    103=上期所    104=大商所    105=郑商所	
 	unsigned char			m_SessionCount;					///该交易所可用连接数量，也即为m_SessionId的前多少位有效。最大255
 	EES_MarketSessionId		m_SessionId[255];				///合法的交易所连接代号
-};
+} EES_ExchangeMarketSession;
 
-struct EES_SymbolStatus
+typedef struct EES_SymbolStatus
 {	
 	EES_ExchangeID	m_ExchangeID;		///< 102=中金所    103=上期所    104=大商所    105=郑商所	
 	EES_Symbol		m_Symbol;			///< 合约代码
@@ -535,9 +536,9 @@ struct EES_SymbolStatus
 	unsigned int	m_TradingSegmentSN;	///< 交易阶段编号
 	char			m_EnterTime[9];		///< 进入本状态时间
 	unsigned char	m_EnterReason;		///< 进入本状态原因: '1': 自动切换; '2': 手动切换; '3': 熔断; '4': 熔断手动;
-};
+} EES_SymbolStatus;
 
-struct EES_MarketMBLData
+typedef struct EES_MarketMBLData
 {
 	unsigned int		m_RequestId;					///< 请求时所填的id
 	unsigned int		m_Result;						///< 0为正常返回，非0为出现错误
@@ -546,9 +547,9 @@ struct EES_MarketMBLData
 	double				m_Price;						///< 价格
 	int					m_Volume;						///< 数量
 	unsigned char		m_IsBid;						///< 1: 买方行情，0:卖方行情
-};
+} EES_MarketMBLData;
 
-struct EES_TradeSvrInfo
+typedef struct EES_TradeSvrInfo
 {
 	char            m_remoteTradeIp[16];  /// 服务器交易IP
 	unsigned short  m_remoteTradeTCPPort; /// 服务器交易TCP端口
@@ -564,7 +565,7 @@ struct EES_TradeSvrInfo
 	{
 		memset((void*)this, 0, sizeof(EES_TradeSvrInfo));
 	}
-};
+} EES_TradeSvrInfo;
 
 #pragma pack(pop)
 
