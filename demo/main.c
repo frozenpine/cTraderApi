@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "cTraderApi.h"
+#include "cThostTraderApi.h"
 
 const char * front = "tcp://172.30.1.221:31803";
 
