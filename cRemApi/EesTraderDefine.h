@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#define SL_EES_API_VERSION    "3.1.3.55"				///<  api版本号
+#define SL_EES_API_VERSION    "3.1.3.55"				/// api版本号
 
 typedef int RESULT;										///< 定义返回值 
 typedef int ERR_NO;										///< 定义错误值 

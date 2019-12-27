@@ -32,6 +32,7 @@
     <Library Include="libs\x86\EESTraderApi.lib" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cEESTraderApi.cpp" />
     <ClCompile Include="EesTraderApiWrapper.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

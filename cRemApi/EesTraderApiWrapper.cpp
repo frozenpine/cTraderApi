@@ -110,110 +110,110 @@ void cTraderApi::OnQueryMarketMBLData(EES_MarketMBLData * pMarketMBLData, bool b
 
 int cTraderApi::ConnServer(const char * svrAddr, int nPort, EESTraderEvent * pEvent, const char * qrySvrAddr, int nQrySvrPort)
 {
-	return 0;
+	return pApi->ConnServer(svrAddr, nPort, pEvent, qrySvrAddr, nQrySvrPort);
 }
 
 int cTraderApi::ConnServer(const EES_TradeSvrInfo & param, EESTraderEvent * pEvent)
 {
-	return 0;
+	return pApi->ConnServer(param, pEvent);
 }
 
 int cTraderApi::DisConnServer()
 {
-	return 0;
+	return pApi->DisConnServer();
 }
 
 int cTraderApi::UserLogon(const char * user_id, const char * user_pwd, const char * prodInfo, const char * macAddr)
 {
-	return 0;
+	return pApi->UserLogon(user_id, user_pwd, prodInfo, macAddr);
 }
 
 int cTraderApi::ChangePassword(const char * oldPwd, const char * newPwd)
 {
-	return 0;
+	return pApi->ChangePassword(oldPwd, newPwd);
 }
 
 int cTraderApi::QuerySymbolList()
 {
-	return 0;
+	return pApi->QuerySymbolList();
 }
 
 int cTraderApi::QueryUserAccount()
 {
-	return 0;
+	return pApi->QueryUserAccount();
 }
 
 int cTraderApi::QueryAccountPosition(const char * accountId, int nReqId)
 {
-	return 0;
+	return pApi->QueryAccountPosition(accountId, nReqId);
 }
 
 int cTraderApi::QueryAccountBP(const char * accountId, int nReqId)
 {
-	return 0;
+	return pApi->QueryAccountBP(accountId, nReqId);
 }
 
 int cTraderApi::QueryAccountTradeMargin(const char * accountId)
 {
-	return 0;
+	return pApi->QueryAccountTradeMargin(accountId);
 }
 
 int cTraderApi::QueryAccountTradeFee(const char * accountId)
 {
-	return 0;
+	return pApi->QueryAccountTradeFee(accountId);
 }
 
 int cTraderApi::GetMaxToken(OUT EES_ClientToken * orderToken)
 {
-	return 0;
+	return pApi->GetMaxToken(orderToken);
 }
 
 int cTraderApi::EnterOrder(EES_EnterOrderField * pOrder)
 {
-	return 0;
+	return pApi->EnterOrder(pOrder);
 }
 
 int cTraderApi::CancelOrder(EES_CancelOrder * pCxlOrder)
 {
-	return 0;
+	return pApi->CancelOrder(pCxlOrder);
 }
 
 int cTraderApi::QueryAccountOrder(const char * accountId)
 {
-	return 0;
+	return pApi->QueryAccountOrder(accountId);
 }
 
 int cTraderApi::QueryAccountOrderExecution(const char * accountId)
 {
-	return 0;
+	return pApi->QueryAccountOrderExecution(accountId);
 }
 
 int cTraderApi::QueryMarketSession()
 {
-	return 0;
+	return pApi->QueryMarketSession();
 }
 
 int cTraderApi::QuerySymbolStatus()
 {
-	return 0;
+	return pApi->QuerySymbolStatus();
 }
 
 int cTraderApi::EnterMultiOrders(EES_EnterOrderField * pArrOrders, int nCount)
 {
-	return 0;
+	return pApi->EnterMultiOrders(pArrOrders, nCount);
 }
 
 int cTraderApi::QueryMarketMBLData(int nRequestId, EES_ExchangeID exchangeID, int nSide)
 {
-	return 0;
+	return pApi->QueryMarketMBLData(nRequestId, exchangeID, nSide);
 }
 
 int cTraderApi::QueryMarketMBLData(int nRequestId, const char * startSymbol, const char * endSymbol, int nSide)
 {
-	return 0;
+	return pApi->QueryMarketMBLData(nRequestId, startSymbol, endSymbol, nSide);
 }
 
 int cTraderApi::ChangeFCParam(unsigned int OrderCount, unsigned int CancelCount)
 {
-	return 0;
+	return pApi->ChangeFCParam(OrderCount, CancelCount);
 }
