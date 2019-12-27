@@ -5,14 +5,10 @@
 */
 #pragma  once 
 
-
-
-
 #ifndef _EES_TRADE_API_STRUCT_DEFINE_H_
 #define _EES_TRADE_API_STRUCT_DEFINE_H_
 
 #include <string.h>
-
 
 #define SL_EES_API_VERSION    "3.1.3.55"				///<  api版本号
 
@@ -53,7 +49,6 @@ typedef unsigned char EES_SideType;						///< 买卖方向
 #define EES_SideType_close_short				21		///< =买单（平仓）
 #define EES_SideType_close_long					22		///< =卖单（平仓）
 
-
 typedef unsigned char EES_ExchangeID;					///< 交易所ID
 #define EES_ExchangeID_sh_cs                    100		///< =上交所
 #define EES_ExchangeID_sz_cs                    101		///< =深交所
@@ -65,12 +60,10 @@ typedef unsigned char EES_ExchangeID;					///< 交易所ID
 #define EES_ExchangeID_sge						107		///< =上海金交所
 #define EES_ExchangeID_done_away                255		///< =Done-away 
 
-
 typedef unsigned char EES_SecType;						///< 交易品种类型 
 #define EES_SecType_cs                          1		///< =股票
 #define EES_SecType_options                     2		///< =期权
 #define EES_SecType_fut                         3		///< =期货
-
 
 typedef unsigned char EES_ForceCloseType;				///< 强平原因 
 #define EES_ForceCloseType_not_force_close      0		///< =非强平  
@@ -99,7 +92,6 @@ typedef int           EES_Previlege;					///< 目前硬件暂不支持，也就是说都是完全
 typedef int     EES_PosiDirection;						///< 多空方向 1：多头 5：空头
 #define EES_PosiDirection_long					1		///< =多头
 #define EES_PosiDirection_short					5		///< =空头
-
 
 typedef unsigned char EES_RejectedMan;					///< 被谁拒绝，盛立系统还是下面连的交易所 1=盛立
 #define EES_RejectedMan_by_shengli				1		///< =被盛立拒绝
@@ -203,7 +195,7 @@ typedef struct EES_EnterOrderField
 	unsigned char		m_DoNotAdjustCoverSide;			///< 默认情况下，如果是中金/大连交易所的“平今/平昨”订单，API会自动将之转换为“平仓”订单，该值如果为true，则不进行此转换，一般用于测试场景
 	EES_OrderType		m_OrderType;					///< 目前支持：1=限价; 3=限价止盈; 4=限价止损; 这3种，且仅对大连订单真正有效。
 	double				m_StopPrice;					///< 当m_OrderType为 3/4/5/6 时必填，其它情况填0
-	EES_EnterOrderField()
+	/*EES_EnterOrderField()
 	{
 		memset(this, 0, sizeof(*this));
 		m_Tif = EES_OrderTif_Day;
@@ -215,7 +207,7 @@ typedef struct EES_EnterOrderField
 		m_DoNotAdjustCoverSide = 0;
 		m_OrderType = EES_Order_Type_Limt;
 		m_StopPrice = 0.0;
-	}
+	}*/
 
 } EES_EnterOrderField;
 
@@ -561,10 +553,10 @@ typedef struct EES_TradeSvrInfo
 	char            m_LocalTradeIp[16];   /// 本地交易IP
 	unsigned short  m_LocalTradeUDPPort;  /// 本地交易UDP端口
 
-	EES_TradeSvrInfo()
+	/*EES_TradeSvrInfo()
 	{
 		memset((void*)this, 0, sizeof(EES_TradeSvrInfo));
-	}
+	}*/
 } EES_TradeSvrInfo;
 
 #pragma pack(pop)
@@ -676,6 +668,7 @@ typedef struct EES_TradeSvrInfo
 //	5			-  找不到报单
 //	33			-  报单已撤单或已成交
 //	3			-  报单尚未被市场接受
+//	127			-  外部平台已撤单
 //	129			-  外部报单不能从本系统撤单
 //	513			-  无可用于撤单的席位
 //	257			-  客户号或者登录号错误

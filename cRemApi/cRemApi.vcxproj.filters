@@ -33,6 +33,9 @@
     <ClInclude Include="EesTraderApiWrapper.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cEESTraderApi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="libs\x86\EESTraderApi.dll">

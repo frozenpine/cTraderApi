@@ -5,8 +5,13 @@
 class cTraderApi : public EESTraderEvent
 {
 public:
-	cTraderApi();;
-	~cTraderApi();;
+	cTraderApi() {
+		pApi = CreateEESTraderApi();
+	};
+
+	~cTraderApi() {
+		DestroyEESTraderApi(pApi);
+	};
 private:
 	EESTraderApi *pApi;
 public:
@@ -242,7 +247,7 @@ public:
 	/// \return void 
 	virtual void OnQueryMarketMBLData(EES_MarketMBLData* pMarketMBLData, bool bFinish);
 
-
+	
 	/// 连接服务器
 	/// 提供2种接口，新增的形式，兼容极致版的接口，第一种接口即使用TCP模式
 	int ConnServer(const char* svrAddr, int nPort, EESTraderEvent* pEvent, const char* qrySvrAddr, int nQrySvrPort);

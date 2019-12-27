@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cEESTraderApi.h" />
     <ClInclude Include="EesTraderApi.h" />
     <ClInclude Include="EesTraderApiWrapper.h" />
     <ClInclude Include="EesTraderDefine.h" />
