@@ -1,6 +1,6 @@
 #include "EesTraderApiWrapper.h"
 
-void SetCallbackOnConnection(InstanceID id, CbOnConnection handler)
+C_API void SetCallbackOnConnection(InstanceID id, CbOnConnection handler)
 {
 	if (id == NULL) {
 		return;
@@ -9,7 +9,7 @@ void SetCallbackOnConnection(InstanceID id, CbOnConnection handler)
 	((cTraderApi*)id)->SetCallbackOnConnection(handler);
 }
 
-void SetCallbackOnDisConnection(InstanceID id, CbOnDisConnection handler)
+C_API void SetCallbackOnDisConnection(InstanceID id, CbOnDisConnection handler)
 {
 	if (id == NULL) {
 		return;
@@ -18,7 +18,7 @@ void SetCallbackOnDisConnection(InstanceID id, CbOnDisConnection handler)
 	((cTraderApi*)id)->SetCallbackOnDisConnection(handler);
 }
 
-void SetCallbackOnUserLogon(InstanceID id, CbOnUserLogon handler)
+C_API void SetCallbackOnUserLogon(InstanceID id, CbOnUserLogon handler)
 {
 	if (id == NULL) {
 		return;
@@ -27,7 +27,7 @@ void SetCallbackOnUserLogon(InstanceID id, CbOnUserLogon handler)
 	((cTraderApi*)id)->SetCallbackOnUserLogon(handler);
 }
 
-void SetCallbackOnRspChangePassword(InstanceID id, CbOnRspChangePassword handler)
+C_API void SetCallbackOnRspChangePassword(InstanceID id, CbOnRspChangePassword handler)
 {
 	if (id == NULL) {
 		return;
@@ -36,7 +36,7 @@ void SetCallbackOnRspChangePassword(InstanceID id, CbOnRspChangePassword handler
 	((cTraderApi*)id)->SetCallbackOnChangePassword(handler);
 }
 
-void SetCallbackOnQueryUserAccount(InstanceID id, CbOnQueryUserAccount handler)
+C_API void SetCallbackOnQueryUserAccount(InstanceID id, CbOnQueryUserAccount handler)
 {
 	if (id == NULL) {
 		return;
@@ -45,7 +45,7 @@ void SetCallbackOnQueryUserAccount(InstanceID id, CbOnQueryUserAccount handler)
 	((cTraderApi*)id)->SetCallbackOnQueryUserAccount(handler);
 }
 
-void SetCallbackOnQueryAccountPosition(InstanceID id, CbOnQueryAccountPosition handler)
+C_API void SetCallbackOnQueryAccountPosition(InstanceID id, CbOnQueryAccountPosition handler)
 {
 	if (id == NULL) {
 		return;
@@ -54,7 +54,7 @@ void SetCallbackOnQueryAccountPosition(InstanceID id, CbOnQueryAccountPosition h
 	((cTraderApi*)id)->SetCallbackOnQueryAccountPosition(handler);
 }
 
-void SetCallbackOnQueryAccountOptionPosition(InstanceID id, CbOnQueryAccountOptionPosition handler)
+C_API void SetCallbackOnQueryAccountOptionPosition(InstanceID id, CbOnQueryAccountOptionPosition handler)
 {
 	if (id == NULL) {
 		return;
@@ -63,7 +63,7 @@ void SetCallbackOnQueryAccountOptionPosition(InstanceID id, CbOnQueryAccountOpti
 	((cTraderApi*)id)->SetCallbackOnQueryAccountOptionPosition(handler);
 }
 
-void SetCallbackOnQueryAccountBP(InstanceID id, CbOnQueryAccountBP handler)
+C_API void SetCallbackOnQueryAccountBP(InstanceID id, CbOnQueryAccountBP handler)
 {
 	if (id == NULL) {
 		return;
@@ -72,7 +72,7 @@ void SetCallbackOnQueryAccountBP(InstanceID id, CbOnQueryAccountBP handler)
 	((cTraderApi*)id)->SetCallbackOnQueryAccountBP(handler);
 }
 
-void SetCallbackOnQuerySymbol(InstanceID id, CbOnQuerySymbol handler)
+C_API void SetCallbackOnQuerySymbol(InstanceID id, CbOnQuerySymbol handler)
 {
 	if (id == NULL) {
 		return;
@@ -81,7 +81,7 @@ void SetCallbackOnQuerySymbol(InstanceID id, CbOnQuerySymbol handler)
 	((cTraderApi*)id)->SetCallbackOnQuerySymbol(handler);
 }
 
-void SetCallbackOnQueryAccountTradeMargin(InstanceID id, CbOnQueryAccountTradeMargin handler)
+C_API void SetCallbackOnQueryAccountTradeMargin(InstanceID id, CbOnQueryAccountTradeMargin handler)
 {
 	if (id == NULL) {
 		return;
@@ -90,7 +90,7 @@ void SetCallbackOnQueryAccountTradeMargin(InstanceID id, CbOnQueryAccountTradeMa
 	((cTraderApi*)id)->SetCallbackOnQueryAccountTradeMargin(handler);
 }
 
-void SetCallbackOnQueryAccountTradeFee(InstanceID id, CbOnQueryAccountTradeFee handler)
+C_API void SetCallbackOnQueryAccountTradeFee(InstanceID id, CbOnQueryAccountTradeFee handler)
 {
 	if (id == NULL) {
 		return;
@@ -99,7 +99,7 @@ void SetCallbackOnQueryAccountTradeFee(InstanceID id, CbOnQueryAccountTradeFee h
 	((cTraderApi*)id)->SetCallbackOnQueryAccountTradeFee(handler);
 }
 
-void SetCallbackOnOrderAccept(InstanceID id, CbOnOrderAccept handler)
+C_API void SetCallbackOnOrderAccept(InstanceID id, CbOnOrderAccept handler)
 {
 	if (id == NULL) {
 		return;
@@ -108,7 +108,7 @@ void SetCallbackOnOrderAccept(InstanceID id, CbOnOrderAccept handler)
 	((cTraderApi*)id)->SetCallbackOnOrderAccept(handler);
 }
 
-void SetCallbackOnOrderMarketAccept(InstanceID id, CbOnOrderMarketAccept handler)
+C_API void SetCallbackOnOrderMarketAccept(InstanceID id, CbOnOrderMarketAccept handler)
 {
 	if (id == NULL) {
 		return;
@@ -117,7 +117,7 @@ void SetCallbackOnOrderMarketAccept(InstanceID id, CbOnOrderMarketAccept handler
 	((cTraderApi*)id)->SetCallbackOnOrderMarketAccept(handler);
 }
 
-void SetCallbackOnOrderReject(InstanceID id, CbOnOrderReject handler)
+C_API void SetCallbackOnOrderReject(InstanceID id, CbOnOrderReject handler)
 {
 	if (id == NULL) {
 		return;
@@ -126,7 +126,7 @@ void SetCallbackOnOrderReject(InstanceID id, CbOnOrderReject handler)
 	((cTraderApi*)id)->SetCallbackOnOrderReject(handler);
 }
 
-void SetCallbackOnOrderMarketReject(InstanceID id, CbOnOrderMarketReject handler)
+C_API void SetCallbackOnOrderMarketReject(InstanceID id, CbOnOrderMarketReject handler)
 {
 	if (id == NULL) {
 		return;
@@ -135,7 +135,7 @@ void SetCallbackOnOrderMarketReject(InstanceID id, CbOnOrderMarketReject handler
 	((cTraderApi*)id)->SetCallbackOnOrderMarketReject(handler);
 }
 
-void SetCallbackOnOrderExecution(InstanceID id, CbOnOrderExecution handler)
+C_API void SetCallbackOnOrderExecution(InstanceID id, CbOnOrderExecution handler)
 {
 	if (id == NULL) {
 		return;
@@ -144,7 +144,7 @@ void SetCallbackOnOrderExecution(InstanceID id, CbOnOrderExecution handler)
 	((cTraderApi*)id)->SetCallbackOnOrderExecution(handler);
 }
 
-void SetCallbackOnOrderCxled(InstanceID id, CbOnOrderCxled handler)
+C_API void SetCallbackOnOrderCxled(InstanceID id, CbOnOrderCxled handler)
 {
 	if (id == NULL) {
 		return;
@@ -153,7 +153,7 @@ void SetCallbackOnOrderCxled(InstanceID id, CbOnOrderCxled handler)
 	((cTraderApi*)id)->SetCallbackOnOrderCxled(handler);
 }
 
-void SetCallbackOnCxlOrderReject(InstanceID id, CbOnCxlOrderReject handler)
+C_API void SetCallbackOnCxlOrderReject(InstanceID id, CbOnCxlOrderReject handler)
 {
 	if (id == NULL) {
 		return;
@@ -162,7 +162,7 @@ void SetCallbackOnCxlOrderReject(InstanceID id, CbOnCxlOrderReject handler)
 	((cTraderApi*)id)->SetCallbackOnCxlOrderReject(handler);
 }
 
-void SetCallbackOnQueryTradeOrder(InstanceID id, CbOnQueryTradeOrder handler)
+C_API void SetCallbackOnQueryTradeOrder(InstanceID id, CbOnQueryTradeOrder handler)
 {
 	if (id == NULL) {
 		return;
@@ -171,7 +171,7 @@ void SetCallbackOnQueryTradeOrder(InstanceID id, CbOnQueryTradeOrder handler)
 	((cTraderApi*)id)->SetCallbackOnQueryTradeOrder(handler);
 }
 
-void SetCallbackOnQueryTradeOrderExec(InstanceID id, CbOnQueryTradeOrderExec handler)
+C_API void SetCallbackOnQueryTradeOrderExec(InstanceID id, CbOnQueryTradeOrderExec handler)
 {
 	if (id == NULL) {
 		return;
@@ -180,7 +180,7 @@ void SetCallbackOnQueryTradeOrderExec(InstanceID id, CbOnQueryTradeOrderExec han
 	((cTraderApi*)id)->SetCallbackOnQueryTradeOrderExec(handler);
 }
 
-void SetCallbackOnPostOrder(InstanceID id, CbOnPostOrder handler)
+C_API void SetCallbackOnPostOrder(InstanceID id, CbOnPostOrder handler)
 {
 	if (id == NULL) {
 		return;
@@ -189,7 +189,7 @@ void SetCallbackOnPostOrder(InstanceID id, CbOnPostOrder handler)
 	((cTraderApi*)id)->SetCallbackOnPostOrder(handler);
 }
 
-void SetCallbackOnPostOrderExecution(InstanceID id, CbOnPostOrderExecution handler)
+C_API void SetCallbackOnPostOrderExecution(InstanceID id, CbOnPostOrderExecution handler)
 {
 	if (id == NULL) {
 		return;
@@ -198,7 +198,7 @@ void SetCallbackOnPostOrderExecution(InstanceID id, CbOnPostOrderExecution handl
 	((cTraderApi*)id)->SetCallbackOnPostOrderExecution(handler);
 }
 
-void SetCallbackOnQueryMarketSession(InstanceID id, CbOnQueryMarketSession handler)
+C_API void SetCallbackOnQueryMarketSession(InstanceID id, CbOnQueryMarketSession handler)
 {
 	if (id == NULL) {
 		return;
@@ -207,7 +207,7 @@ void SetCallbackOnQueryMarketSession(InstanceID id, CbOnQueryMarketSession handl
 	((cTraderApi*)id)->SetCallbackOnQueryMarketSession(handler);
 }
 
-void SetCallbackOnMarketSessionStatReport(InstanceID id, CbOnMarketSessionStatReport handler)
+C_API void SetCallbackOnMarketSessionStatReport(InstanceID id, CbOnMarketSessionStatReport handler)
 {
 	if (id == NULL) {
 		return;
@@ -216,7 +216,7 @@ void SetCallbackOnMarketSessionStatReport(InstanceID id, CbOnMarketSessionStatRe
 	((cTraderApi*)id)->SetCallbackOnMarketSessionStatReport(handler);
 }
 
-void SetCallbackOnSymbolStatusReport(InstanceID id, CbOnSymbolStatusReport handler)
+C_API void SetCallbackOnSymbolStatusReport(InstanceID id, CbOnSymbolStatusReport handler)
 {
 	if (id == NULL) {
 		return;
@@ -225,7 +225,7 @@ void SetCallbackOnSymbolStatusReport(InstanceID id, CbOnSymbolStatusReport handl
 	((cTraderApi*)id)->SetCallbackOnSymbolStatusReport(handler);
 }
 
-void SetCallbackOnQuerySymbolStatus(InstanceID id, CbOnQuerySymbolStatus handler)
+C_API void SetCallbackOnQuerySymbolStatus(InstanceID id, CbOnQuerySymbolStatus handler)
 {
 	if (id == NULL) {
 		return;
@@ -234,11 +234,20 @@ void SetCallbackOnQuerySymbolStatus(InstanceID id, CbOnQuerySymbolStatus handler
 	((cTraderApi*)id)->SetCallbackOnQuerySymbolStatus(handler);
 }
 
-void SetCallbackOnQueryMarketMBLData(InstanceID id, CbOnQueryMarketMBLData handler)
+C_API void SetCallbackOnQueryMarketMBLData(InstanceID id, CbOnQueryMarketMBLData handler)
 {
 	if (id == NULL) {
 		return;
 	}
 
 	((cTraderApi*)id)->SetCallbackOnQueryMarketMBLData(handler);
+}
+
+C_API void SetCallbackVirtualTable(InstanceID id, callbackVirtualTable *vt)
+{
+	if (id == NULL) {
+		return;
+	}
+
+	((cTraderApi*)id)->SetCallbackVirtualTable(vt);
 }

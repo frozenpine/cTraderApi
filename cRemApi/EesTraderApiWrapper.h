@@ -1,4 +1,5 @@
 #pragma once
+#include <string.h>
 
 #include "EesTraderApi.h"
 #include "cEESTraderApi.h"
@@ -280,6 +281,10 @@ public:
 	virtual void OnQueryMarketMBLData(EES_MarketMBLData* pMarketMBLData, bool bFinish);
 	void SetCallbackOnQueryMarketMBLData(CbOnQueryMarketMBLData handler) {
 		vtCallback.onQueryMarketMBLData = handler;
+	}
+
+	void SetCallbackVirtualTable(callbackVirtualTable *vt) {
+		memcpy(&vtCallback, vt, sizeof(callbackVirtualTable));
 	}
 
 	

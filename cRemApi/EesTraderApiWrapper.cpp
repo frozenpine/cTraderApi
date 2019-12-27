@@ -2,26 +2,56 @@
 
 void cTraderApi::OnConnection(ERR_NO errNo, const char * pErrStr)
 {
+	if (vtCallback.onConnection == NULL) {
+		return;
+	}
+
+	vtCallback.onConnection(errNo, pErrStr);
 }
 
 void cTraderApi::OnDisConnection(ERR_NO errNo, const char * pErrStr)
 {
+	if (vtCallback.onDisConnection == NULL) {
+		return;
+	}
+
+	vtCallback.onDisConnection(errNo, pErrStr);
 }
 
 void cTraderApi::OnUserLogon(EES_LogonResponse * pLogon)
 {
+	if (vtCallback.onUserLogon == NULL) {
+		return;
+	}
+
+	vtCallback.onUserLogon(pLogon);
 }
 
 void cTraderApi::OnRspChangePassword(EES_ChangePasswordResult nResult)
 {
+	if (vtCallback.onRspChangePassword == NULL) {
+		return;
+	}
+
+	vtCallback.onRspChangePassword(nResult);
 }
 
 void cTraderApi::OnQueryUserAccount(EES_AccountInfo * pAccoutnInfo, bool bFinish)
 {
+	if (vtCallback.onQueryUserAccount == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryUserAccount(pAccoutnInfo, bFinish);
 }
 
 void cTraderApi::OnQueryAccountPosition(const char * pAccount, EES_AccountPosition * pAccoutnPosition, int nReqId, bool bFinish)
 {
+	if (vtCallback.onQueryAccountPosition == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryAccountPosition(pAccount, pAccoutnPosition, nReqId, bFinish);
 }
 
 void cTraderApi::OnQueryAccountOptionPosition(const char * pAccount, EES_AccountOptionPosition * pAccoutnOptionPosition, int nReqId, bool bFinish)
