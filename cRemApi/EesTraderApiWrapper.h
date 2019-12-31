@@ -83,7 +83,7 @@ public:
 	///@param  bFinish	                    如果没有传输完成，这个值是false，如果完成了，那个这个值为 true 
 	///remark 如果碰到 bFinish == true，那么是传输结束，并且 pAccountInfo值无效。
 	///@return void 	
-	virtual void OnQueryAccountOptionPosition(const char* pAccount, EES_AccountOptionPosition* pAccoutnOptionPosition, int nReqId, bool bFinish);
+	virtual void OnQueryAccountOptionPosition(const char* pAccount, EES_AccountOptionPosition* pAccountOptionPosition, int nReqId, bool bFinish);
 	void SetCallbackOnQueryAccountOptionPosition(CbOnQueryAccountOptionPosition handler) {
 		vtCallback.onQueryAccountOptionPosition = handler;
 	}

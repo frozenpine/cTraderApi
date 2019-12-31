@@ -6,7 +6,7 @@ void cTraderApi::OnConnection(ERR_NO errNo, const char * pErrStr)
 		return;
 	}
 
-	vtCallback.onConnection(errNo, pErrStr);
+	vtCallback.onConnection((InstanceID)this, errNo, pErrStr);
 }
 
 void cTraderApi::OnDisConnection(ERR_NO errNo, const char * pErrStr)
@@ -15,7 +15,7 @@ void cTraderApi::OnDisConnection(ERR_NO errNo, const char * pErrStr)
 		return;
 	}
 
-	vtCallback.onDisConnection(errNo, pErrStr);
+	vtCallback.onDisConnection((InstanceID)this, errNo, pErrStr);
 }
 
 void cTraderApi::OnUserLogon(EES_LogonResponse * pLogon)
@@ -24,7 +24,7 @@ void cTraderApi::OnUserLogon(EES_LogonResponse * pLogon)
 		return;
 	}
 
-	vtCallback.onUserLogon(pLogon);
+	vtCallback.onUserLogon((InstanceID)this, pLogon);
 }
 
 void cTraderApi::OnRspChangePassword(EES_ChangePasswordResult nResult)
@@ -33,7 +33,7 @@ void cTraderApi::OnRspChangePassword(EES_ChangePasswordResult nResult)
 		return;
 	}
 
-	vtCallback.onRspChangePassword(nResult);
+	vtCallback.onRspChangePassword((InstanceID)this, nResult);
 }
 
 void cTraderApi::OnQueryUserAccount(EES_AccountInfo * pAccoutnInfo, bool bFinish)
@@ -42,7 +42,7 @@ void cTraderApi::OnQueryUserAccount(EES_AccountInfo * pAccoutnInfo, bool bFinish
 		return;
 	}
 
-	vtCallback.onQueryUserAccount(pAccoutnInfo, bFinish);
+	vtCallback.onQueryUserAccount((InstanceID)this, pAccoutnInfo, bFinish);
 }
 
 void cTraderApi::OnQueryAccountPosition(const char * pAccount, EES_AccountPosition * pAccoutnPosition, int nReqId, bool bFinish)
@@ -51,91 +51,196 @@ void cTraderApi::OnQueryAccountPosition(const char * pAccount, EES_AccountPositi
 		return;
 	}
 
-	vtCallback.onQueryAccountPosition(pAccount, pAccoutnPosition, nReqId, bFinish);
+	vtCallback.onQueryAccountPosition((InstanceID)this, pAccount, pAccoutnPosition, nReqId, bFinish);
 }
 
-void cTraderApi::OnQueryAccountOptionPosition(const char * pAccount, EES_AccountOptionPosition * pAccoutnOptionPosition, int nReqId, bool bFinish)
+void cTraderApi::OnQueryAccountOptionPosition(const char * pAccount, EES_AccountOptionPosition * pAccountOptionPosition, int nReqId, bool bFinish)
 {
+	if (vtCallback.onQueryAccountOptionPosition == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryAccountOptionPosition((InstanceID)this, pAccount, pAccountOptionPosition, nReqId, bFinish);
 }
 
 void cTraderApi::OnQueryAccountBP(const char * pAccount, EES_AccountBP * pAccoutnPosition, int nReqId)
 {
+	if (vtCallback.onQueryAccountBP == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryAccountBP((InstanceID)this, pAccount, pAccoutnPosition, nReqId);
 }
 
 void cTraderApi::OnQuerySymbol(EES_SymbolField * pSymbol, bool bFinish)
 {
+	if (vtCallback.onQuerySymbol == NULL) {
+		return;
+	}
+
+	vtCallback.onQuerySymbol((InstanceID)this, pSymbol, bFinish);
 }
 
 void cTraderApi::OnQueryAccountTradeMargin(const char * pAccount, EES_AccountMargin * pSymbolMargin, bool bFinish)
 {
+	if (vtCallback.onQueryAccountTradeMargin == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryAccountTradeMargin((InstanceID)this, pAccount, pSymbolMargin, bFinish);
 }
 
 void cTraderApi::OnQueryAccountTradeFee(const char * pAccount, EES_AccountFee * pSymbolFee, bool bFinish)
 {
+	if (vtCallback.onQueryAccountTradeFee == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryAccountTradeFee((InstanceID)this, pAccount, pSymbolFee, bFinish);
 }
 
 void cTraderApi::OnOrderAccept(EES_OrderAcceptField * pAccept)
 {
+	if (vtCallback.onOrderAccept == NULL) {
+		return;
+	}
+
+	vtCallback.onOrderAccept((InstanceID)this, pAccept);
 }
 
 void cTraderApi::OnOrderMarketAccept(EES_OrderMarketAcceptField * pAccept)
 {
+	if (vtCallback.onOrderMarketAccept == NULL) {
+		return;
+	}
+
+	vtCallback.onOrderMarketAccept((InstanceID)this, pAccept);
 }
 
 void cTraderApi::OnOrderReject(EES_OrderRejectField * pReject)
 {
+	if (vtCallback.onOrderReject == NULL) {
+		return;
+	}
+
+	vtCallback.onOrderReject((InstanceID)this, pReject);
 }
 
 void cTraderApi::OnOrderMarketReject(EES_OrderMarketRejectField * pReject)
 {
+	if (vtCallback.onOrderMarketReject == NULL) {
+		return;
+	}
+
+	vtCallback.onOrderMarketReject((InstanceID)this, pReject);
 }
 
 void cTraderApi::OnOrderExecution(EES_OrderExecutionField * pExec)
 {
+	if (vtCallback.onOrderExecution == NULL) {
+		return;
+	}
+
+	vtCallback.onOrderExecution((InstanceID)this, pExec);
 }
 
 void cTraderApi::OnOrderCxled(EES_OrderCxled * pCxled)
 {
+	if (vtCallback.onOrderCxled == NULL) {
+		return;
+	}
+
+	vtCallback.onOrderCxled((InstanceID)this, pCxled);
 }
 
 void cTraderApi::OnCxlOrderReject(EES_CxlOrderRej * pReject)
 {
+	if (vtCallback.onCxlOrderReject == NULL) {
+		return;
+	}
+
+	vtCallback.onCxlOrderReject((InstanceID)this, pReject);
 }
 
 void cTraderApi::OnQueryTradeOrder(const char * pAccount, EES_QueryAccountOrder * pQueryOrder, bool bFinish)
 {
+	if (vtCallback.onQueryTradeOrder == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryTradeOrder((InstanceID)this, pAccount, pQueryOrder, bFinish);
 }
 
 void cTraderApi::OnQueryTradeOrderExec(const char * pAccount, EES_QueryOrderExecution * pQueryOrderExec, bool bFinish)
 {
+	if (vtCallback.onQueryTradeOrderExec == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryTradeOrderExec((InstanceID)this, pAccount, pQueryOrderExec, bFinish);
 }
 
 void cTraderApi::OnPostOrder(EES_PostOrder * pPostOrder)
 {
+	if (vtCallback.onPostOrder == NULL) {
+		return;
+	}
+
+	vtCallback.onPostOrder((InstanceID)this, pPostOrder);
 }
 
 void cTraderApi::OnPostOrderExecution(EES_PostOrderExecution * pPostOrderExecution)
 {
+	if (vtCallback.onPostOrderExecution == NULL) {
+		return;
+	}
+
+	vtCallback.onPostOrderExecution((InstanceID)this, pPostOrderExecution);
 }
 
 void cTraderApi::OnQueryMarketSession(EES_ExchangeMarketSession * pMarketSession, bool bFinish)
 {
+	if (vtCallback.onQueryMarketSession == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryMarketSession((InstanceID)this, pMarketSession, bFinish);
 }
 
 void cTraderApi::OnMarketSessionStatReport(EES_MarketSessionId MarketSessionId, bool ConnectionGood)
 {
+	if (vtCallback.onMarketSessionStatReport == NULL) {
+		return;
+	}
+
+	vtCallback.onMarketSessionStatReport((InstanceID)this, MarketSessionId, ConnectionGood);
 }
 
 void cTraderApi::OnSymbolStatusReport(EES_SymbolStatus * pSymbolStatus)
 {
+	if (vtCallback.onSymbolStatusReport == NULL) {
+		return;
+	}
+
+	vtCallback.onSymbolStatusReport((InstanceID)this, pSymbolStatus);
 }
 
 void cTraderApi::OnQuerySymbolStatus(EES_SymbolStatus * pSymbolStatus, bool bFinish)
 {
+	if (vtCallback.onQuerySymbolStatus == NULL) {
+		return;
+	}
+
+	vtCallback.onQuerySymbolStatus((InstanceID)this, pSymbolStatus, bFinish);
 }
 
 void cTraderApi::OnQueryMarketMBLData(EES_MarketMBLData * pMarketMBLData, bool bFinish)
 {
+	if (vtCallback.onQueryMarketMBLData == NULL) {
+		return;
+	}
+
+	vtCallback.onQueryMarketMBLData((InstanceID)this, pMarketMBLData, bFinish);
 }
 
 int cTraderApi::ConnServer(const char * svrAddr, int nPort, EESTraderEvent * pEvent, const char * qrySvrAddr, int nQrySvrPort)
