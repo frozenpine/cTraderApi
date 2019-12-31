@@ -2,7 +2,17 @@
 
 #include "cThostTraderApi.h"
 
-const char * front = "tcp://172.30.1.221:31803";
+#ifdef _WIN32
+#include <direct.h>
+#define MKDIR(path) _mkdir((path))
+#else
+#include <sys/types.h>
+#include <sys/stat.h>
+#define MKDIR(path) mkdir((path), S_IRUSR|S_IWUSR|S_IRGRP)
+#endif
+
+const char *front = "tcp://172.30.1.221:31803";
+const char *flowPath = "flow/";
 
 void onFrontConnected(InstanceID id)
 {
@@ -14,7 +24,9 @@ void onFrontConnected(InstanceID id)
 int main() {
 	printf("API Version: %s", GetApiVersion());
 
-	InstanceID id = CreateApi("flow/");
+	MKDIR(flowPath);
+
+	InstanceID id = CreateApi(flowPath);
 
 	SetCallbackOnFrontConnected(id, onFrontConnected);
 
