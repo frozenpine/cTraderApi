@@ -8,10 +8,17 @@ class cTraderApi : public CThostFtdcTraderSpi
 {
 public:
 	cTraderApi() {};
-	cTraderApi(const char *pszFlowPath);
+	cTraderApi(const char *pszFlowPath) {
+		CreateApi(pszFlowPath);
+	};
+protected:
 	~cTraderApi() {
-		pApi->Release();
-		pApi->Join();
+		if (pApi == NULL) {
+			return;
+		}
+
+		Release();
+		Join();
 	};
 
 private:
@@ -25,16 +32,16 @@ public:
 	///@retrun 获取到的版本号
 	static const char *GetApiVersion();
 
-	///删除接口对象本身
-	///@remark 不再使用本接口对象时,调用该函数删除接口对象
-	void Release();
-
-	void CreateApi(const char *pszFlowPath = "");
+	int CreateApi(const char *pszFlowPath = "");
 
 	///初始化
 	///@param bContinuous 为true表示线程不休眠
 	///@remark 初始化运行环境,只有调用后,接口才开始工作
 	void Init(bool bContinuous = false);
+
+	///删除接口对象本身
+	///@remark 不再使用本接口对象时,调用该函数删除接口对象
+	void Release();
 
 	///等待接口线程结束运行
 	///@return 线程退出代码
