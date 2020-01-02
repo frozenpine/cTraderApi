@@ -1,3 +1,5 @@
+#ifndef C_THOST_TRADER_API_H
+#define C_THOST_TRADER_API_H
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -1290,3 +1292,4 @@ extern "C"
 }
 #endif
 
+#endif

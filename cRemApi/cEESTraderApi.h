@@ -1,3 +1,5 @@
+#ifndef C_EES_TRADER_API_H
+#define C_EES_TRADER_API_H
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -333,3 +335,5 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+#endif
