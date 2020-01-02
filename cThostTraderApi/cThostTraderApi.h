@@ -1034,7 +1034,7 @@ extern "C"
 
 	///创建API接口实例
 	///@return 接口实例号
-	C_API InstanceID CreateApi(const char *pszFlowPath);
+	C_API InstanceID CreateThostTraderApi(const char *pszFlowPath);
 
 	///获取API的版本信息
 	///@retrun 获取到的版本号

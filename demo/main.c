@@ -26,7 +26,7 @@ int main() {
 
 	MKDIR(flowPath);
 
-	InstanceID id = CreateApi(flowPath);
+	InstanceID id = CreateThostTraderApi(flowPath);
 
 	SetCallbackOnFrontConnected(id, onFrontConnected);
 

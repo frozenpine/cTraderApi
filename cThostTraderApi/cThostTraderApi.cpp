@@ -1042,7 +1042,7 @@ C_API void SetCallbackVirtualTable(InstanceID id, callbackVirtualTable *vt)
 	((cTraderApi *)id)->SetCallbackVirtualTable(vt);
 };
 
-C_API InstanceID CreateApi(const char *pszFlowPath)
+C_API InstanceID CreateThostTraderApi(const char *pszFlowPath)
 {
 	cTraderApi *api = new cTraderApi(pszFlowPath);
 	
