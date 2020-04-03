@@ -7,9 +7,11 @@
 class cTraderApi : public CThostFtdcTraderSpi
 {
 public:
-	cTraderApi() {};
+	cTraderApi() { initVTCallback(); };
 	cTraderApi(const char *pszFlowPath) {
 		CreateApi(pszFlowPath);
+
+		initVTCallback();
 	};
 protected:
 	~cTraderApi() {
@@ -26,6 +28,8 @@ private:
 	// Callback virtual table
 	// Only used in C wrapper for Other Language
 	callbackVirtualTable vtCallback;
+
+	void initVTCallback() { memset(&vtCallback, 0, sizeof(vtCallback)); }
 
 public:
 	///获取API的版本信息

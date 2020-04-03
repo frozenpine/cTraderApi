@@ -79,6 +79,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)cThostTraderApi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -108,6 +109,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)cThostTraderApi</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)cThostTraderApi\libs\x64;$(SolutionDir)x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -135,9 +137,17 @@
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\cTraderApi\cTraderApi.h" />
-    <ClInclude Include="..\cTraderApi\ThostFtdcUserApiDataType.h" />
-    <ClInclude Include="..\cTraderApi\ThostFtdcUserApiStruct.h" />
+    <ClInclude Include="..\cThostTraderApi\cThostTraderApi.h" />
+    <ClInclude Include="..\cThostTraderApi\ThostFtdcUserApiDataType.h" />
+    <ClInclude Include="..\cThostTraderApi\ThostFtdcUserApiStruct.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\cRemApi\cRemApi.vcxproj">
+      <Project>{a2a50c78-2990-4b67-b646-98dbcafff955}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\cThostTraderApi\cThostTraderApi.vcxproj">
+      <Project>{6684f37d-3730-4111-92bd-9d4b4a2327a0}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

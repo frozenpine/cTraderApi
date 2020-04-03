@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\cTraderApi\cTraderApi.h">
+    <ClInclude Include="..\cThostTraderApi\cThostTraderApi.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\cTraderApi\ThostFtdcUserApiDataType.h">
+    <ClInclude Include="..\cThostTraderApi\ThostFtdcUserApiDataType.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\cTraderApi\ThostFtdcUserApiStruct.h">
+    <ClInclude Include="..\cThostTraderApi\ThostFtdcUserApiStruct.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
