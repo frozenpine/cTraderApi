@@ -1,9 +1,8 @@
 NAME=cthosttraderapi
 BUILD=`date +%FT%T%z`
 
-CC=gcc
-CFLAGS=-fPIC -shared -DCTRADER_API -DCTRADERAPI_EXPORTS
-EXTRALINK=
+CC=g++
+CFLAGS=-shared -fPIC -DCTRADER_API -DCTRADERAPI_EXPORTS -fvisibility=default
 
 ifeq ($(OS), Windows_NT)
 	BINARY=$(NAME).dll
@@ -12,7 +11,7 @@ else
 endif
 
 default:
-	$(CC) $(CFLAGS) -o $(BINARY) cThostTraderApi.cpp -I ./ -L ./libs/x64/ -lthosttraderapi
+	$(CC) $(CFLAGS) cThostTraderApi.cpp -o $(BINARY) -I./ -Llibs/x64 -lthosttraderapi
 
 .PHONY: clean
 clean:

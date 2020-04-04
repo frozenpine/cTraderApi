@@ -191,10 +191,22 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Value Computed by CMake
+cThostTraderDemo_BINARY_DIR:STATIC=D:/Users/Sonny/Documents/Projects/C++/cTraderApi/out/build/x64-Debug/demo
+
+//Value Computed by CMake
+cThostTraderDemo_SOURCE_DIR:STATIC=D:/Users/Sonny/Documents/Projects/C++/cTraderApi/demo
+
+//Value Computed by CMake
 cTraderApi_BINARY_DIR:STATIC=D:/Users/Sonny/Documents/Projects/C++/cTraderApi/out/build/x64-Debug
 
 //Value Computed by CMake
 cTraderApi_SOURCE_DIR:STATIC=D:/Users/Sonny/Documents/Projects/C++/cTraderApi
+
+//Value Computed by CMake
+demo_BINARY_DIR:STATIC=D:/Users/Sonny/Documents/Projects/C++/cTraderApi/out/build/x64-Debug/demo
+
+//Value Computed by CMake
+demo_SOURCE_DIR:STATIC=D:/Users/Sonny/Documents/Projects/C++/cTraderApi/demo
 
 
 ########################

@@ -81,29 +81,6 @@ void onRspUserLogin(InstanceID id, CThostFtdcRspUserLoginField* pRspUserLogin,
 	memset(&qry, 0, sizeof(CThostFtdcQryExchangeField));
 	printf("Try to query available Exchanges.\n");
 	ReqQryExchange(id, &qry, ++nRequestID);
-
-	// CThostFtdcQryInstrumentField qry;
-	// memset(&qry, 0, sizeof(qry));
-	// printf("Try to query all instruments.\n");
-	// ReqQryInstrument(id, &qry, ++nRequestID);
-}
-
-void onRspQryInstrument(InstanceID id, CThostFtdcInstrumentField* pInstrument,
-	CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
-{
-	if (pRspInfo->ErrorID != 0)
-	{
-		printf("Query instruments failed[%d]: %s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-		running = false;
-		return;
-	}
-
-	printf("Instrument[%s.%s]: %s\n", pInstrument->ExchangeID, pInstrument->InstrumentID, pInstrument->InstrumentName);
-
-	if (bIsLast)
-	{
-		running = false;
-	}
 }
 
 void onRspQryExchange(InstanceID id, CThostFtdcExchangeField* pExchange,
@@ -116,8 +93,34 @@ void onRspQryExchange(InstanceID id, CThostFtdcExchangeField* pExchange,
 		return;
 	}
 
-	printf("Exchange[%s]: %s\n", pExchange->ExchangeID, pExchange->ExchangeName);
-	if (bIsLast)
+	if (pExchange != NULL)
+	{
+		printf("Exchange[%s]: %s\n", pExchange->ExchangeID, pExchange->ExchangeName);
+	}
+	else if (bIsLast)
+	{
+		CThostFtdcQryInstrumentField qry;
+		memset(&qry, 0, sizeof(qry));
+		printf("Try to query all instruments.\n");
+		ReqQryInstrument(id, &qry, ++nRequestID);
+	}
+}
+
+void onRspQryInstrument(InstanceID id, CThostFtdcInstrumentField* pInstrument,
+	CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (pRspInfo->ErrorID != 0)
+	{
+		printf("Query instruments failed[%d]: %s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+		running = false;
+		return;
+	}
+
+	if (pInstrument != NULL)
+	{
+		printf("Instrument[%s.%s]: %s\n", pInstrument->ExchangeID, pInstrument->InstrumentID, pInstrument->InstrumentName);
+	}
+	else if (bIsLast)
 	{
 		running = false;
 	}

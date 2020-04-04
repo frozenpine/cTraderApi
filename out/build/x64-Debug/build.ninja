@@ -68,6 +68,7 @@ build cmake_object_order_depends_target_demo: phony || demo\CMakeFiles\demo.dir
 
 build demo\CMakeFiles\demo.dir\main.c.obj: C_COMPILER__demo ..\..\..\demo\main.c || cmake_object_order_depends_target_demo
   FLAGS = /DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1
+  INCLUDES = -I..\..\..\demo\..\cThostTrader
   OBJECT_DIR = demo\CMakeFiles\demo.dir
   OBJECT_FILE_DIR = demo\CMakeFiles\demo.dir
   TARGET_COMPILE_PDB = demo\CMakeFiles\demo.dir\
@@ -85,6 +86,7 @@ build demo\demo.exe: C_EXECUTABLE_LINKER__demo demo\CMakeFiles\demo.dir\main.c.o
   FLAGS = /DWIN32 /D_WINDOWS /W3 /MDd /Zi /Ob0 /Od /RTC1
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:console
   LINK_LIBRARIES = kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_PATH = -LIBPATH:D:\Users\Sonny\Documents\Projects\C++\cTraderApi\demo\..\cThostTrader\libs\x64
   OBJECT_DIR = demo\CMakeFiles\demo.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

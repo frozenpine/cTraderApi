@@ -23,17 +23,16 @@
     <ClInclude Include="..\cThostTraderApi\cThostTraderApi.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\cThostTraderApi\ThostFtcTraderApiWrapper.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\cThostTraderApi\ThostFtdcTraderApi.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\cThostTraderApi\ThostFtdcUserApiDataType.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\cThostTraderApi\ThostFtdcUserApiStruct.h">
       <Filter>头文件</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt">
+      <Filter>资源文件</Filter>
+    </Text>
   </ItemGroup>
 </Project>
