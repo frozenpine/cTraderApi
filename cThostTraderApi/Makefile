@@ -12,7 +12,7 @@ else
 endif
 
 default:
-	$(CC) $(CFLAGS) -o $(BINARY) cThostTraderApi.cpp -I./ -Llibs/x64/ -lthosttraderapi
+	$(CC) $(CFLAGS) -o $(BINARY) cThostTraderApi.cpp -I ./ -L ./libs/x64/ -lthosttraderapi
 
 .PHONY: clean
 clean:

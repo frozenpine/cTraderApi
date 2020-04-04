@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.902
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29926.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cThostTraderApi", "cThostTraderApi\cThostTraderApi.vcxproj", "{6684F37D-3730-4111-92BD-9D4B4A2327A0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cRemApi", "cRemApi\cRemApi.vcxproj", "{A2A50C78-2990-4B67-B646-98DBCAFFF955}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cThostTraderDemo", "cThostTraderDemo\cThostTraderDemo.vcxproj", "{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,14 @@ Global
 		{A2A50C78-2990-4B67-B646-98DBCAFFF955}.Release|x64.Build.0 = Release|x64
 		{A2A50C78-2990-4B67-B646-98DBCAFFF955}.Release|x86.ActiveCfg = Release|Win32
 		{A2A50C78-2990-4B67-B646-98DBCAFFF955}.Release|x86.Build.0 = Release|Win32
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Debug|x64.ActiveCfg = Debug|x64
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Debug|x64.Build.0 = Debug|x64
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Debug|x86.ActiveCfg = Debug|Win32
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Debug|x86.Build.0 = Debug|Win32
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Release|x64.ActiveCfg = Release|x64
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Release|x64.Build.0 = Release|x64
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Release|x86.ActiveCfg = Release|Win32
+		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
