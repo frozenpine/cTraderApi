@@ -55,6 +55,7 @@
     <None Include="libs\x64\thosttraderapi.dll">
       <Filter>libs\x64</Filter>
     </None>
+    <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\x86\thosttraderapi.lib">

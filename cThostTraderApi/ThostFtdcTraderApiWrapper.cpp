@@ -24,11 +24,19 @@ int cTraderApi::CreateApi(const char * pszFlowPath)
 
 void cTraderApi::Release()
 {
+	pApi->RegisterSpi(NULL);
 	pApi->Release();
+
+	pApi = NULL;
 }
 
 int cTraderApi::Join()
 {
+	if (pApi == NULL) 
+	{
+		return -1;
+	}
+
 	return pApi->Join();
 }
 

@@ -20,7 +20,6 @@ protected:
 		}
 
 		Release();
-		Join();
 	};
 
 private:
