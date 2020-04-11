@@ -1,4 +1,4 @@
-# include "ThostFtcTraderApiWrapper.h"
+#include "ThostFtcTraderApiWrapper.h"
 
 const char *cTraderApi::GetApiVersion()
 {

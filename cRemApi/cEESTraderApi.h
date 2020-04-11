@@ -7,7 +7,7 @@
 #include "EesTraderErr.h"
 
 #ifdef __GNUC__
-#ifdef CTRADERAPI_EXPORTS
+#ifdef CREMAPI_EXPORTS
 #define C_API __attribute__((dllexport))
 #else
 #define C_API __attribute__((dllimport))
@@ -234,7 +234,7 @@ extern "C"
 	///合约状态查询响应
 	///<brief  响应合约状态查询请求
 	///@param  pSymbolStatus: 参见EES_SymbolStatus合约状态结构体定义
-	///@param	bFinish: 当为true时，表示查询所有结果返回。此时pSymbolStatus为空指针NULL
+	///@param  bFinish: 当为true时，表示查询所有结果返回。此时pSymbolStatus为空指针NULL
 	///@return void 
 	typedef void (APPWINAPI *CbOnQuerySymbolStatus)(InstanceID id, EES_SymbolStatus* pSymbolStatus, bool bFinish);
 	C_API void SetCallbackOnQuerySymbolStatus(InstanceID id, CbOnQuerySymbolStatus handler);

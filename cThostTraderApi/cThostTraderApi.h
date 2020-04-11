@@ -1,3 +1,5 @@
+// C API wrapper for Mini2 API 1.5
+
 #ifndef C_THOST_TRADER_API_H
 #define C_THOST_TRADER_API_H
 #include <stdint.h>
@@ -21,9 +23,9 @@
 #endif
 
 #ifndef _WIN32
-#define __stdcall
+#define __cdecl
 #endif
-#define APPWINAPI __stdcall
+#define APPWINAPI __cdecl
 
 #ifdef __cplusplus
 #define NULL 0

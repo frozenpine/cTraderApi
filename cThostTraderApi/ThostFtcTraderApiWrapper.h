@@ -1,5 +1,5 @@
 #pragma once
-#include "string.h"
+#include <string.h>
 
 #include "cThostTraderApi.h"
 #include "ThostFtdcTraderApi.h"
@@ -28,7 +28,7 @@ private:
 	// Only used in C wrapper for Other Language
 	callbackVirtualTable vtCallback;
 
-	void initVTCallback() { memset(&vtCallback, 0, sizeof(vtCallback)); }
+	void initVTCallback() { memset(&vtCallback, 0, sizeof(callbackVirtualTable)); }
 
 public:
 	///获取API的版本信息
