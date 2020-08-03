@@ -4,7 +4,7 @@
 #include "cThostTraderApi.h"
 #include "ThostFtdcTraderApi.h"
 
-class cTraderApi : public CThostFtdcTraderSpi
+C_API class cTraderApi : public CThostFtdcTraderSpi
 {
 public:
 	cTraderApi() { initVTCallback(); };

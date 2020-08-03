@@ -9,6 +9,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cRemApi", "cRemApi\cRemApi.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cThostTraderDemo", "cThostTraderDemo\cThostTraderDemo.vcxproj", "{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cRemApiDemo", "cRemApiDemo\cRemApiDemo.vcxproj", "{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A2A50C78-2990-4B67-B646-98DBCAFFF955} = {A2A50C78-2990-4B67-B646-98DBCAFFF955}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CTPThostTraderDemo", "CTPThostTraderDemo\CTPThostTraderDemo.vcxproj", "{77F70CDE-7167-4D12-B40C-ED55C6A736A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +48,22 @@ Global
 		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Release|x64.Build.0 = Release|x64
 		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Release|x86.ActiveCfg = Release|Win32
 		{BF6EA9AC-241E-4FF8-9C6D-27CF91051C44}.Release|x86.Build.0 = Release|Win32
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Debug|x64.ActiveCfg = Debug|x64
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Debug|x64.Build.0 = Debug|x64
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Debug|x86.ActiveCfg = Debug|Win32
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Debug|x86.Build.0 = Debug|Win32
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Release|x64.ActiveCfg = Release|x64
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Release|x64.Build.0 = Release|x64
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Release|x86.ActiveCfg = Release|Win32
+		{ED11C39A-8206-4F2F-AC18-5A17DA11F7BB}.Release|x86.Build.0 = Release|Win32
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Debug|x64.ActiveCfg = Debug|x64
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Debug|x64.Build.0 = Debug|x64
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Debug|x86.ActiveCfg = Debug|Win32
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Debug|x86.Build.0 = Debug|Win32
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Release|x64.ActiveCfg = Release|x64
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Release|x64.Build.0 = Release|x64
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Release|x86.ActiveCfg = Release|Win32
+		{77F70CDE-7167-4D12-B40C-ED55C6A736A1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

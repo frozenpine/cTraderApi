@@ -9,14 +9,23 @@ class cTraderApi : public EESTraderEvent
 public:
 	cTraderApi() {
 		pApi = CreateEESTraderApi();
+
+		initVTCallback();
 	};
 
 	~cTraderApi() {
+		if (pApi == NULL) {
+			return;
+		}
+
+		DisConnServer();
 		DestroyEESTraderApi(pApi);
 	};
 private:
 	EESTraderApi *pApi;
 	callbackVirtualTable vtCallback;
+
+	void initVTCallback() { memset(&vtCallback, 0, sizeof(callbackVirtualTable)); }
 public:
 	///连接消息的回调
 	///<brief	服务器连接事件
@@ -286,6 +295,10 @@ public:
 	void SetCallbackVirtualTable(callbackVirtualTable *vt) {
 		memcpy(&vtCallback, vt, sizeof(callbackVirtualTable));
 	}
+
+
+	///创建API接口对象
+	void CreateApi();
 
 	
 	///连接服务器

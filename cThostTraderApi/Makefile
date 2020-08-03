@@ -1,7 +1,8 @@
 NAME=cthosttraderapi
 BUILD=`date +%FT%T%z`
 
-CC=g++
+# CC=g++
+CC=gcc
 CFLAGS=-shared -fPIC -DCTRADER_API -DCTRADERAPI_EXPORTS
 
 ifeq ($(OS), Windows_NT)

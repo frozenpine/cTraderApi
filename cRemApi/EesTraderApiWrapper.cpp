@@ -243,6 +243,15 @@ void cTraderApi::OnQueryMarketMBLData(EES_MarketMBLData * pMarketMBLData, bool b
 	vtCallback.onQueryMarketMBLData((InstanceID)this, pMarketMBLData, bFinish);
 }
 
+void cTraderApi::CreateApi()
+{
+	if (pApi != NULL) {
+		return;
+	}
+
+	pApi = CreateEESTraderApi();
+}
+
 int cTraderApi::ConnServer(const char * svrAddr, int nPort, EESTraderEvent * pEvent, const char * qrySvrAddr, int nQrySvrPort)
 {
 	return pApi->ConnServer(svrAddr, nPort, pEvent, qrySvrAddr, nQrySvrPort);

@@ -20,9 +20,9 @@ const char* flowPath = "flow/";
 const char* tdFront = "tcp://180.166.6.246:65086";
 const char* mdFront = "tcp://180.166.6.246:65090";
 const char* brokerID = "0121";
-const char* appID = "Rohon_RHProTrade_1.4";
-const char* authCode = "A0L3ZW5IUQT7PS90";
-const char* userID = "000603";
+const char* appID = "client_VIIB_V1.0";
+const char* authCode = "E4785GL0IKCR8HGH";
+const char* userID = "000645";
 const char* password = "147258";
 
 bool running = true;
@@ -33,9 +33,9 @@ void onFrontConnected(InstanceID id)
 
 	CThostFtdcReqAuthenticateField auth;
 	memset(&auth, 0, sizeof(auth));
-	strncpy(&(auth.BrokerID), brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-	strncpy(&(auth.AppID), appID, sizeof(TThostFtdcClientAppIDType) - 1);
-	strncpy(&(auth.AuthCode), authCode, sizeof(TThostFtdcAuthCodeType) - 1);
+	strncpy(&auth.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	strncpy(&auth.AppID, appID, sizeof(TThostFtdcClientAppIDType) - 1);
+	strncpy(&auth.AuthCode, authCode, sizeof(TThostFtdcAuthCodeType) - 1);
 
 	printf("Try to authenticate with AppID[%s].\n", appID);
 
@@ -56,9 +56,9 @@ void onRspAuthenticatioin(InstanceID id, CThostFtdcRspAuthenticateField* pRspAut
 
 	CThostFtdcReqUserLoginField login;
 	memset(&login, 0, sizeof(login));
-	strncpy(&(login.BrokerID), brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-	strncpy(&(login.UserID), userID, sizeof(TThostFtdcUserIDType) - 1);
-	strncpy(&(login.Password), password, sizeof(TThostFtdcPasswordType) - 1);
+	strncpy(&login.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	strncpy(&login.UserID, userID, sizeof(TThostFtdcUserIDType) - 1);
+	strncpy(&login.Password, password, sizeof(TThostFtdcPasswordType) - 1);
 
 	printf("Try to login with UserID[%s]\n", userID);
 
