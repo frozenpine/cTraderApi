@@ -90,10 +90,27 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 	}
 
 	if (pRspUserLogin != NULL) {
-		printf("Login succeed: %s, %s\n", pRspUserLogin->BrokerID, pRspUserLogin->UserID);
+		printf("Login succeed[%s]: %s, %s\n", pRspUserLogin->TradingDay, pRspUserLogin->BrokerID, pRspUserLogin->UserID);
 	}
 
 	login = true;
+}
+
+void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (pRspInfo != NULL && pRspInfo->ErrorID != 0) {
+		printf("Query instrument failed[%d]: %s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+
+		return;
+	}
+
+	if (pInstrument != NULL) {
+		printf("%s.%s: \n", pInstrument->ExchangeID, pInstrument->InstrumentID);
+	}
+
+	if (bIsLast) {
+		printf("All instrument query response finished.\n");
+	}
 }
 
 void TDUserApi::CreateFtdcTraderApi(const char* pszFlowPath)

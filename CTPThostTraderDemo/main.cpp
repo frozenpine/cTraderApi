@@ -41,5 +41,10 @@ int main(int argc, char* argv) {
 	api->ReqUserLogin(&login);
 	printf("Send login: %s, %s\n", brokerID, userID);
 
+	CThostFtdcQryInstrumentField qry;
+	memset(&qry, 0, sizeof(qry));
+	api->ReqQryInstrument(&qry);
+	printf("Quering instrument info.\n");
+
 	api->Join();
 }
