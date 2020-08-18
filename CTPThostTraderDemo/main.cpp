@@ -4,13 +4,21 @@
 
 const char flowPath[] = "flow/";
 
+//// CTP´ÎÏ¯
+//char tdFront[] = "tcp://180.166.6.245:51205";
+//char brokerID[] = "5100";
+//char appID[] = "client_wfa_1.0.0";
+//char authCode[] = "VZ7N55JRMQL98ODU";
+//char userID[] = "000006";
+//char password[] = "123456";
+
+// CTP·ÂÕæ
 char tdFront[] = "tcp://180.166.6.242:41205";
 char brokerID[] = "0121";
-char appID[] = "client_VIIB_V1.0";
-char authCode[] = "E4785GL0IKCR8HGH";
-char userID[] = "000645";
+char appID[] = "client_wfa_1.0.0";
+char authCode[] = "VZ7N55JRMQL98ODU";
+char userID[] = "300000";
 char password[] = "147258";
-char userProdInfo[] = "CPP TEST API";
 
 int main(int argc, char* argv) {
 	printf("CTP API Version: %s impl by CPP.\n", TDUserApi::GetApiVersion());
@@ -25,19 +33,18 @@ int main(int argc, char* argv) {
 
 	CThostFtdcReqAuthenticateField auth;
 	memset(&auth, 0, sizeof(auth));
-	memcpy(auth.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-	memcpy(auth.UserID, userID, sizeof(TThostFtdcUserIDType) - 1);
-	memcpy(auth.AppID, appID, sizeof(TThostFtdcAppIDType) - 1);
-	memcpy(auth.AuthCode, authCode, sizeof(TThostFtdcAuthCodeType) - 1);
-	memcpy(auth.UserProductInfo, userProdInfo, sizeof(TThostFtdcProductInfoType) - 1);
+	strncpy(auth.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType));
+	strncpy(auth.UserID, userID, sizeof(TThostFtdcUserIDType));
+	strncpy(auth.AppID, appID, sizeof(TThostFtdcAppIDType));
+	strncpy(auth.AuthCode, authCode, sizeof(TThostFtdcAuthCodeType));
 	api->ReqAuthenticate(&auth);
 	printf("Send authentication: %s, %s, %s\n", brokerID, userID, appID);
 
 	CThostFtdcReqUserLoginField login;
 	memset(&login, 0, sizeof(login));
-	memcpy(login.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-	memcpy(login.UserID, userID, sizeof(TThostFtdcUserIDType) - 1);
-	memcpy(login.Password, password, sizeof(TThostFtdcPasswordType) - 1);
+	strncpy(login.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType));
+	strncpy(login.UserID, userID, sizeof(TThostFtdcUserIDType));
+	strncpy(login.Password, password, sizeof(TThostFtdcPasswordType));
 	api->ReqUserLogin(&login);
 	printf("Send login: %s, %s\n", brokerID, userID);
 

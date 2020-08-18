@@ -221,6 +221,8 @@ int TDUserApi::ReqUserLogin(CThostFtdcReqUserLoginField* pReqUserLoginField)
 {
 	waitUntil(&TDUserApi::checkAuthenticated, true);
 
+	// waitUntil(&TDUserApi::checkConnected, true);
+
 	return pApi->ReqUserLogin(pReqUserLoginField, ++nRequestID);
 }
 
