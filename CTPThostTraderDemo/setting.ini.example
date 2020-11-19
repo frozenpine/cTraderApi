@@ -1,0 +1,32 @@
+;该文件是用来配置平台ip,port,账密
+
+; 平台连接信息
+[front_info]
+; MDFront
+;Address = 172.19.13.41
+; forwarded by devops
+;Address = 172.30.1.187
+;Port = 51223
+; 仿真行情
+Address = 180.166.6.242
+Port = 41213
+; 次席行情
+;Address = 180.166.6.245
+;Port = 51213
+
+; 平台登录信息
+[login_info]
+; 接入商代码
+BrokerID = 5100
+; 交易用户代码
+UserID = 000006
+; 密码
+Password = 123456
+
+; 订阅信息
+[subscribe_info]
+; 订阅合约列表，逗号分隔合约名
+; InstrumentID = sc2109, sc2112, sc2203, sc2206, sc2209
+InstrumentID = ni2012
+; 是否为5档行情，yes/no，true/false，留空默认为false
+IsLevel2 = 

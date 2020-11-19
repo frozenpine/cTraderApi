@@ -17,12 +17,12 @@
 #endif
 
 const char* flowPath = "flow/";
-const char* tdFront = "tcp://180.166.6.246:65086";
+const char* tdFront = "tcp://127.0.0.1:41205";
 const char* mdFront = "tcp://180.166.6.246:65090";
 const char* brokerID = "0121";
 const char* appID = "client_VIIB_V1.0";
 const char* authCode = "E4785GL0IKCR8HGH";
-const char* userID = "000645";
+const char* userID = "300000";
 const char* password = "147258";
 
 bool running = true;

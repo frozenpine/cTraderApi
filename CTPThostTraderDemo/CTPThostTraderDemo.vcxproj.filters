@@ -41,6 +41,12 @@
     <None Include="error.dtd">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="setting.ini">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="setting.ini.example">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThostFtdcMdApi.h">
@@ -56,6 +62,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="TDUserApi.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ini.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

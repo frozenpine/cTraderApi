@@ -18,6 +18,8 @@
 
 #include "ThostFtdcTraderApi.h"
 
+#define _CRT_SECURE_NO_WARNINGS
+
 class TDUserApi : public CThostFtdcTraderSpi
 {
 public:
@@ -27,6 +29,7 @@ public:
 		connected = false;
 		authenticated = false;
 		login = false;
+		qryFinished = true;
 	};
 protected:
 	~TDUserApi();
@@ -37,14 +40,17 @@ private:
 	bool connected;
 	bool authenticated;
 	bool login;
+	bool qryFinished;
 
 	bool checkAPIInitialized();
 	bool checkConnected();
 	bool checkAuthenticated();
 	bool checkUserLogin();
+	bool checkQryStatus();
+
+	bool checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* rspInfo);
 
 	void waitUntil(bool (TDUserApi::* checkFn)(), bool expect);
-public:
 public:
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();

@@ -32,6 +32,22 @@ bool TDUserApi::checkUserLogin()
 	return login;
 }
 
+bool TDUserApi::checkQryStatus()
+{
+	return qryFinished;
+}
+
+bool TDUserApi::checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* rspInfo)
+{
+	if (NULL != rspInfo && 0 != rspInfo->ErrorID) {
+		printf(msgTemplate, rspInfo->ErrorID, rspInfo->ErrorMsg);
+
+		return true;
+	}
+
+	return false;
+}
+
 void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect)
 {
 	while (true) {
@@ -64,11 +80,9 @@ void TDUserApi::OnHeartBeatWarning(int nTimeLapse)
 
 void TDUserApi::OnRspAuthenticate(CThostFtdcRspAuthenticateField* pRspAuthenticateField, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (pRspInfo != NULL && pRspInfo->ErrorID != 0) {
-		printf("Authentication failed[%d]: %s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-
+	if (checkRspError("Authentication failed[%d]: %s\n", pRspInfo)) {
 		pApi->Release();
-		
+
 		return;
 	}
 
@@ -81,9 +95,7 @@ void TDUserApi::OnRspAuthenticate(CThostFtdcRspAuthenticateField* pRspAuthentica
 
 void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (pRspInfo != NULL && pRspInfo->ErrorID != 0) {
-		printf("Login failed[%d]: %s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-
+	if (checkRspError("Login failed[%d]: %s\n", pRspInfo)) {
 		pApi->Release();
 
 		return;
@@ -98,9 +110,7 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 
 void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (pRspInfo != NULL && pRspInfo->ErrorID != 0) {
-		printf("Query instrument failed[%d]: %s\n", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-
+	if (checkRspError("Query instrument failed[%d]: %s\n", pRspInfo)) {
 		return;
 	}
 
@@ -110,6 +120,8 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 
 	if (bIsLast) {
 		printf("All instrument query response finished.\n");
+
+		qryFinished = true;
 	}
 }
 
@@ -199,6 +211,8 @@ void TDUserApi::SubscribePublicTopic(THOST_TE_RESUME_TYPE nResumeType)
 int TDUserApi::ReqAuthenticate(CThostFtdcReqAuthenticateField* pReqAuthenticateField)
 {
 	waitUntil(&TDUserApi::checkConnected, true);
+
+	authenticated = false;
 	
 	return pApi->ReqAuthenticate(pReqAuthenticateField, ++nRequestID);
 }
@@ -222,6 +236,8 @@ int TDUserApi::ReqUserLogin(CThostFtdcReqUserLoginField* pReqUserLoginField)
 	waitUntil(&TDUserApi::checkAuthenticated, true);
 
 	// waitUntil(&TDUserApi::checkConnected, true);
+
+	login = false;
 
 	return pApi->ReqUserLogin(pReqUserLoginField, ++nRequestID);
 }
@@ -327,6 +343,8 @@ int TDUserApi::ReqQryProduct(CThostFtdcQryProductField* pQryProduct)
 int TDUserApi::ReqQryInstrument(CThostFtdcQryInstrumentField* pQryInstrument)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryInstrument(pQryInstrument, ++nRequestID);
 }
