@@ -14,14 +14,24 @@ struct CommandDefine {
 class Command
 {
 public:
-	Command() {};
+	Command() { tradeAPI = nullptr; commandName = "CLI"; }
+	Command(TDUserApi* api) { 
+		new (this)Command();
+		
+		tradeAPI = api; 
+	}
 private:
+	std::string commandName;
+	TDUserApi* tradeAPI;
+
+	std::map<std::string, Command*> subCommands;
 	std::map<std::string, CommandDefine*> commandTable;
 	std::vector<std::string> commandList;
 
 	bool commandExist(std::string commandName);
 public:
-	void AddCommand(CommandDefine* define);
+	int AddCommand(CommandDefine* define);
+	int AddSubCommand(Command* subCommand);
 	int RunCommand(TDUserApi* api, std::string commandName, ...);
 	// void Start();
 	void PrintCommands();

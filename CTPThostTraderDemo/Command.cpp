@@ -5,20 +5,29 @@
 
 bool Command::commandExist(std::string commandName)
 {
-	return commandTable.find(commandName) != commandTable.end();
+	return 
+		(commandTable.find(commandName) != commandTable.end()) && 
+		(subCommands.find(commandName) != subCommands.end());
 }
 
-void Command::AddCommand(CommandDefine* define)
+int Command::AddCommand(CommandDefine* define)
 {
 	std::string commandName = std::string(define->command);
 
 	if (commandExist(commandName)) {
 		std::cerr << "Command " << define->command << " is already exist." << std::endl;
-		return;
+		return 1;
 	}
 	
 	commandTable.insert(std::make_pair(commandName, define));
 	commandList.push_back(commandName);
+
+	return 0;
+}
+
+int Command::AddSubCommand(Command* subCommand)
+{
+	return 0;
 }
 
 int Command::RunCommand(TDUserApi* api, std::string commandName, ...)
