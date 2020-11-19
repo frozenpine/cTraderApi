@@ -61,6 +61,11 @@ void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect)
 	}
 }
 
+void TDUserApi::WaitInitialData()
+{
+	waitUntil(&TDUserApi::checkQryStatus, true);
+}
+
 void TDUserApi::OnFrontConnected()
 {
 	printf("Front connected.\n");
@@ -273,6 +278,9 @@ int TDUserApi::ReqUserAuthMethod(CThostFtdcReqUserAuthMethodField* pReqUserAuthM
 int TDUserApi::ReqQryOrder(CThostFtdcQryOrderField* pQryOrder)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryOrder(pQryOrder, ++nRequestID);
 }
@@ -280,6 +288,9 @@ int TDUserApi::ReqQryOrder(CThostFtdcQryOrderField* pQryOrder)
 int TDUserApi::ReqQryTrade(CThostFtdcQryTradeField* pQryTrade)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryTrade(pQryTrade, ++nRequestID);
 }
@@ -287,6 +298,9 @@ int TDUserApi::ReqQryTrade(CThostFtdcQryTradeField* pQryTrade)
 int TDUserApi::ReqQryInvestorPosition(CThostFtdcQryInvestorPositionField* pQryInvestorPosition)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryInvestorPosition(pQryInvestorPosition, ++nRequestID);
 }
@@ -294,6 +308,9 @@ int TDUserApi::ReqQryInvestorPosition(CThostFtdcQryInvestorPositionField* pQryIn
 int TDUserApi::ReqQryTradingAccount(CThostFtdcQryTradingAccountField* pQryTradingAccount)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryTradingAccount(pQryTradingAccount, ++nRequestID);
 }
@@ -301,6 +318,9 @@ int TDUserApi::ReqQryTradingAccount(CThostFtdcQryTradingAccountField* pQryTradin
 int TDUserApi::ReqQryInvestor(CThostFtdcQryInvestorField* pQryInvestor)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryInvestor(pQryInvestor, ++nRequestID);
 }
@@ -308,6 +328,9 @@ int TDUserApi::ReqQryInvestor(CThostFtdcQryInvestorField* pQryInvestor)
 int TDUserApi::ReqQryTradingCode(CThostFtdcQryTradingCodeField* pQryTradingCode)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryTradingCode(pQryTradingCode, ++nRequestID);
 }
@@ -315,6 +338,9 @@ int TDUserApi::ReqQryTradingCode(CThostFtdcQryTradingCodeField* pQryTradingCode)
 int TDUserApi::ReqQryInstrumentMarginRate(CThostFtdcQryInstrumentMarginRateField* pQryInstrumentMarginRate)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryInstrumentMarginRate(pQryInstrumentMarginRate, ++nRequestID);
 }
@@ -322,6 +348,9 @@ int TDUserApi::ReqQryInstrumentMarginRate(CThostFtdcQryInstrumentMarginRateField
 int TDUserApi::ReqQryInstrumentCommissionRate(CThostFtdcQryInstrumentCommissionRateField* pQryInstrumentCommissionRate)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryInstrumentCommissionRate(pQryInstrumentCommissionRate, ++nRequestID);
 }
@@ -329,6 +358,9 @@ int TDUserApi::ReqQryInstrumentCommissionRate(CThostFtdcQryInstrumentCommissionR
 int TDUserApi::ReqQryExchange(CThostFtdcQryExchangeField* pQryExchange)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryExchange(pQryExchange, ++nRequestID);
 }
@@ -336,6 +368,9 @@ int TDUserApi::ReqQryExchange(CThostFtdcQryExchangeField* pQryExchange)
 int TDUserApi::ReqQryProduct(CThostFtdcQryProductField* pQryProduct)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryProduct(pQryProduct, ++nRequestID);
 }
@@ -343,6 +378,7 @@ int TDUserApi::ReqQryProduct(CThostFtdcQryProductField* pQryProduct)
 int TDUserApi::ReqQryInstrument(CThostFtdcQryInstrumentField* pQryInstrument)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
 
 	qryFinished = false;
 
@@ -352,6 +388,9 @@ int TDUserApi::ReqQryInstrument(CThostFtdcQryInstrumentField* pQryInstrument)
 int TDUserApi::ReqQryDepthMarketData(CThostFtdcQryDepthMarketDataField* pQryDepthMarketData)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryDepthMarketData(pQryDepthMarketData, ++nRequestID);
 }
@@ -359,6 +398,9 @@ int TDUserApi::ReqQryDepthMarketData(CThostFtdcQryDepthMarketDataField* pQryDept
 int TDUserApi::ReqQrySettlementInfo(CThostFtdcQrySettlementInfoField* pQrySettlementInfo)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQrySettlementInfo(pQrySettlementInfo, ++nRequestID);
 }
@@ -366,6 +408,9 @@ int TDUserApi::ReqQrySettlementInfo(CThostFtdcQrySettlementInfoField* pQrySettle
 int TDUserApi::ReqQryOptionInstrCommRate(CThostFtdcQryOptionInstrCommRateField* pQryOptionInstrCommRate)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryOptionInstrCommRate(pQryOptionInstrCommRate, ++nRequestID);
 }
@@ -373,6 +418,9 @@ int TDUserApi::ReqQryOptionInstrCommRate(CThostFtdcQryOptionInstrCommRateField* 
 int TDUserApi::ReqQrySettlementInfoConfirm(CThostFtdcQrySettlementInfoConfirmField* pQrySettlementInfoConfirm)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQrySettlementInfoConfirm(pQrySettlementInfoConfirm, ++nRequestID);
 }
@@ -380,6 +428,9 @@ int TDUserApi::ReqQrySettlementInfoConfirm(CThostFtdcQrySettlementInfoConfirmFie
 int TDUserApi::ReqQryInvestorPositionCombineDetail(CThostFtdcQryInvestorPositionCombineDetailField* pQryInvestorPositionCombineDetail)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryInvestorPositionCombineDetail(pQryInvestorPositionCombineDetail, ++nRequestID);
 }
@@ -387,6 +438,9 @@ int TDUserApi::ReqQryInvestorPositionCombineDetail(CThostFtdcQryInvestorPosition
 int TDUserApi::ReqQryExchangeMarginRate(CThostFtdcQryExchangeMarginRateField* pQryExchangeMarginRate)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryExchangeMarginRate(pQryExchangeMarginRate, ++nRequestID);
 }
@@ -394,6 +448,9 @@ int TDUserApi::ReqQryExchangeMarginRate(CThostFtdcQryExchangeMarginRateField* pQ
 int TDUserApi::ReqQryExchangeMarginRateAdjust(CThostFtdcQryExchangeMarginRateAdjustField* pQryExchangeMarginRateAdjust)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);
+
+	qryFinished = false;
 
 	return pApi->ReqQryExchangeMarginRateAdjust(pQryExchangeMarginRateAdjust, ++nRequestID);
 }

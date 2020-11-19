@@ -3,8 +3,15 @@
 
 #include "TDUserApi.h"
 #include "ini.h"
+#include "Command.h"
 
 const char flowPath[] = "flow/";
+
+int cmdVersion(TDUserApi* api, va_list args) {
+	printf("Current API version is: %s\n", api->GetApiVersion());
+
+	return 0;
+}
 
 int main(int argc, char* argv[]) {
 	printf("CTP API Version: %s impl by CPP.\n", TDUserApi::GetApiVersion());
@@ -28,7 +35,7 @@ int main(int argc, char* argv[]) {
 	const char* frontPort = ini["front_info"]["Port"].c_str();
 
 	// 连接字符串格式：tcp://IP:PORT 的最大长度为 6+15+1+5+1
-	char conn[28];
+	char conn[28] = {0};
 	sprintf(conn, "tcp://%s:%s", frontAddr, frontPort);
 
 	const char* brokerID = ini["login_info"]["BrokerID"].c_str();
@@ -36,6 +43,12 @@ int main(int argc, char* argv[]) {
 	const char* userPass = ini["login_info"]["Password"].c_str();
 	const char* appID = ini["login_info"]["AppID"].c_str();
 	const char* authCode = ini["login_info"]["AuthCode"].c_str();
+
+	Command cli;
+
+	CommandDefine versionCommand = {"version", "Print API's version info.", cmdVersion};
+
+	cli.AddCommand(&versionCommand);
 
 	TDUserApi *api = new(TDUserApi);
 
@@ -66,6 +79,12 @@ int main(int argc, char* argv[]) {
 	memset(&qry, 0, sizeof(qry));
 	api->ReqQryInstrument(&qry);
 	printf("Quering instrument info.\n");
+
+	api->WaitInitialData();
+
+	cli.PrintCommands();
+
+	cli.RunCommand(api, "test");
 
 	api->Join();
 }

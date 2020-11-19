@@ -158,6 +158,7 @@
     <None Include="setting.ini.example" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Command.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="ThostFtdcMdApi.h" />
     <ClInclude Include="ThostFtdcTraderApi.h" />
@@ -169,6 +170,7 @@
     <Xml Include="error.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Command.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TDUserApi.cpp" />
   </ItemGroup>
