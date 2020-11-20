@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <condition_variable>
 
 #include "Command.h"
 
@@ -32,7 +33,7 @@ int Command::AddSubCommand(Command* subCommand)
 }
 */
 
-int Command::RunCommand(TDUserApi* api, std::string commandName, ...)
+int Command::RunCommand(std::string commandName, ...)
 {
 	if (!commandExist(commandName)) {
 		return 255;
@@ -43,7 +44,7 @@ int Command::RunCommand(TDUserApi* api, std::string commandName, ...)
 	va_list args;
 	va_start(args, commandName);
 
-	int rtn = (*handler)(api, args);
+	int rtn = (*handler)(cmdInstance, args);
 
 	va_end(args);
 
@@ -68,4 +69,8 @@ void Command::Start()
 {
 	running = true;
 	PrintCommands();
+
+	while (running) {
+
+	}
 }

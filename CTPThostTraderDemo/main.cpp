@@ -44,13 +44,13 @@ int main(int argc, char* argv[]) {
 	const char* appID = ini["login_info"]["AppID"].c_str();
 	const char* authCode = ini["login_info"]["AuthCode"].c_str();
 
-	Command cli;
+	TDUserApi *api = new(TDUserApi);
 
-	CommandDefine versionCommand = {"version", "Print API's version info.", cmdVersion};
+	Command cli = Command(api);
+
+	CommandDefine versionCommand = { "version", "Print API's version info.", cmdVersion };
 
 	cli.AddCommand(&versionCommand);
-
-	TDUserApi *api = new(TDUserApi);
 
 	api->CreateFtdcTraderApi(flowPath);
 	api->SubscribePrivateTopic(THOST_TERT_QUICK);
@@ -94,13 +94,13 @@ int main(int argc, char* argv[]) {
 	// strncpy(qryOdr.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
 	// strncpy(qryOdr.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
 	api->ReqQryOrder(&qryOdr);
-	printf("Qruering invesot's orders.\n");
+	printf("Quering invesot's orders.\n");
 
 	api->WaitInitialData();
 
 	cli.PrintCommands();
 
-	cli.RunCommand(api, "version");
+	cli.RunCommand("version");
 
 	api->Join();
 }

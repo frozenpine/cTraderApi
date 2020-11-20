@@ -40,11 +40,13 @@ protected:
 private:
 	CThostFtdcTraderApi* pApi;
 	std::atomic<int> nRequestID;
-	std::recursive_mutex g_lock;
+	std::mutex g_lock;
+	std::condition_variable g_cond;
 	bool connected;
 	bool authenticated;
 	bool login;
 	bool qryFinished;
+	int maxOrderRef;
 
 	std::map<std::string, CThostFtdcInstrumentField*> symbolCache;
 	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
@@ -56,6 +58,8 @@ private:
 	bool checkAuthenticated();
 	bool checkUserLogin();
 	bool checkQryStatus();
+
+	void setFlag(bool* flag, bool value);
 
 	bool checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* rspInfo);
 
@@ -81,7 +85,6 @@ public:
 
 	///客户端认证响应
 	virtual void OnRspAuthenticate(CThostFtdcRspAuthenticateField* pRspAuthenticateField, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
-
 
 	///登录请求响应
 	virtual void OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);

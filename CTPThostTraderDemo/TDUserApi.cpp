@@ -37,6 +37,15 @@ bool TDUserApi::checkQryStatus()
 	return qryFinished;
 }
 
+void TDUserApi::setFlag(bool* flag, bool value)
+{
+	std::lock_guard<std::mutex> locker(g_lock);
+
+	*flag = value;
+
+	g_cond.notify_one();
+}
+
 bool TDUserApi::checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* rspInfo)
 {
 	if (NULL != rspInfo && 0 != rspInfo->ErrorID) {
@@ -50,14 +59,10 @@ bool TDUserApi::checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* r
 
 void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect)
 {
-	while (true) {
-		std::lock_guard<std::recursive_mutex> locker(g_lock);
+	std::unique_lock<std::mutex> locker(g_lock);
 
-		if ((this->*checkFn)() == expect) {
-			break;
-		}
-
-		SLEEP(100);
+	while ((this->*checkFn)() != expect) {
+		g_cond.wait(locker);
 	}
 }
 
@@ -70,12 +75,14 @@ void TDUserApi::OnFrontConnected()
 {
 	printf("Front connected.\n");
 
-	connected = true;
+	setFlag(&connected, true);
 }
 
 void TDUserApi::OnFrontDisconnected(int nReason)
 {
 	printf("Front disconnected: %d\n", nReason);
+
+	setFlag(&connected, false);
 }
 
 void TDUserApi::OnHeartBeatWarning(int nTimeLapse)
@@ -95,7 +102,7 @@ void TDUserApi::OnRspAuthenticate(CThostFtdcRspAuthenticateField* pRspAuthentica
 		printf("Authentication succeed: %s, %s, %s\n", pRspAuthenticateField->BrokerID, pRspAuthenticateField->UserID, pRspAuthenticateField->AppID);
 	}
 
-	authenticated = true;
+	setFlag(&authenticated, true);
 }
 
 void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
@@ -108,14 +115,14 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 
 	if (pRspUserLogin != NULL) {
 		printf(
-			"Login[%s.%s] succeed on front%d@0x%x: %s %s\n", 
+			"Login[%s.%s] succeed on front%d@0x%X: %s %s\n", 
 			pRspUserLogin->BrokerID, pRspUserLogin->UserID,
 			pRspUserLogin->FrontID, pRspUserLogin->SessionID,
 			pRspUserLogin->TradingDay, pRspUserLogin->LoginTime
 		);
-	}
 
-	login = true;
+		setFlag(&login, true);
+	}
 }
 
 void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
@@ -137,8 +144,9 @@ void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoFie
 	}
 
 	if (bIsLast) {
-		qryFinished = true;
 		printf("Query order finished.\n");
+
+		setFlag(&qryFinished, true);
 	}
 }
 
@@ -166,7 +174,7 @@ void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInves
 	if (bIsLast) {
 		printf("Query investor's position finished.\n");
 
-		qryFinished = true;
+		setFlag(&qryFinished, true);
 	}
 }
 
@@ -188,7 +196,7 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 	if (bIsLast) {
 		printf("Query instrument info finished.\n");
 
-		qryFinished = true;
+		setFlag(&qryFinished, true);
 	}
 }
 
@@ -342,7 +350,7 @@ int TDUserApi::ReqQryOrder(CThostFtdcQryOrderField* pQryOrder)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryOrder(pQryOrder, ++nRequestID);
 }
@@ -352,7 +360,7 @@ int TDUserApi::ReqQryTrade(CThostFtdcQryTradeField* pQryTrade)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryTrade(pQryTrade, ++nRequestID);
 }
@@ -362,7 +370,7 @@ int TDUserApi::ReqQryInvestorPosition(CThostFtdcQryInvestorPositionField* pQryIn
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryInvestorPosition(pQryInvestorPosition, ++nRequestID);
 }
@@ -372,7 +380,7 @@ int TDUserApi::ReqQryTradingAccount(CThostFtdcQryTradingAccountField* pQryTradin
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryTradingAccount(pQryTradingAccount, ++nRequestID);
 }
@@ -382,7 +390,7 @@ int TDUserApi::ReqQryInvestor(CThostFtdcQryInvestorField* pQryInvestor)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryInvestor(pQryInvestor, ++nRequestID);
 }
@@ -392,7 +400,7 @@ int TDUserApi::ReqQryTradingCode(CThostFtdcQryTradingCodeField* pQryTradingCode)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryTradingCode(pQryTradingCode, ++nRequestID);
 }
@@ -402,7 +410,7 @@ int TDUserApi::ReqQryInstrumentMarginRate(CThostFtdcQryInstrumentMarginRateField
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryInstrumentMarginRate(pQryInstrumentMarginRate, ++nRequestID);
 }
@@ -412,7 +420,7 @@ int TDUserApi::ReqQryInstrumentCommissionRate(CThostFtdcQryInstrumentCommissionR
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryInstrumentCommissionRate(pQryInstrumentCommissionRate, ++nRequestID);
 }
@@ -422,7 +430,7 @@ int TDUserApi::ReqQryExchange(CThostFtdcQryExchangeField* pQryExchange)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryExchange(pQryExchange, ++nRequestID);
 }
@@ -432,7 +440,7 @@ int TDUserApi::ReqQryProduct(CThostFtdcQryProductField* pQryProduct)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryProduct(pQryProduct, ++nRequestID);
 }
@@ -442,7 +450,7 @@ int TDUserApi::ReqQryInstrument(CThostFtdcQryInstrumentField* pQryInstrument)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryInstrument(pQryInstrument, ++nRequestID);
 }
@@ -452,7 +460,7 @@ int TDUserApi::ReqQryDepthMarketData(CThostFtdcQryDepthMarketDataField* pQryDept
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryDepthMarketData(pQryDepthMarketData, ++nRequestID);
 }
@@ -462,7 +470,7 @@ int TDUserApi::ReqQrySettlementInfo(CThostFtdcQrySettlementInfoField* pQrySettle
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQrySettlementInfo(pQrySettlementInfo, ++nRequestID);
 }
@@ -472,7 +480,7 @@ int TDUserApi::ReqQryOptionInstrCommRate(CThostFtdcQryOptionInstrCommRateField* 
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryOptionInstrCommRate(pQryOptionInstrCommRate, ++nRequestID);
 }
@@ -482,7 +490,7 @@ int TDUserApi::ReqQrySettlementInfoConfirm(CThostFtdcQrySettlementInfoConfirmFie
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQrySettlementInfoConfirm(pQrySettlementInfoConfirm, ++nRequestID);
 }
@@ -492,7 +500,7 @@ int TDUserApi::ReqQryInvestorPositionCombineDetail(CThostFtdcQryInvestorPosition
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryInvestorPositionCombineDetail(pQryInvestorPositionCombineDetail, ++nRequestID);
 }
@@ -502,7 +510,7 @@ int TDUserApi::ReqQryExchangeMarginRate(CThostFtdcQryExchangeMarginRateField* pQ
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryExchangeMarginRate(pQryExchangeMarginRate, ++nRequestID);
 }
@@ -512,7 +520,7 @@ int TDUserApi::ReqQryExchangeMarginRateAdjust(CThostFtdcQryExchangeMarginRateAdj
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	qryFinished = false;
+	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryExchangeMarginRateAdjust(pQryExchangeMarginRateAdjust, ++nRequestID);
 }

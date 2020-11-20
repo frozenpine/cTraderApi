@@ -32,11 +32,11 @@ private:
 
 	bool commandExist(std::string commandName);
 
-
 public:
 	int AddCommand(CommandDefine* define);
 	// int AddSubCommand(Command* subCommand);
-	int RunCommand(TDUserApi* api, std::string commandName, ...);
+	int RunCommand(std::string commandName, ...);
 	void PrintCommands();
 	void Start();
+	void Exit();
 };
