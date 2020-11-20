@@ -2,6 +2,8 @@
 #include <string.h>
 #include <atomic>
 #include <mutex>
+#include <map>
+#include <string>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -18,7 +20,9 @@
 
 #include "ThostFtdcTraderApi.h"
 
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 
 class TDUserApi : public CThostFtdcTraderSpi
 {
@@ -41,6 +45,11 @@ private:
 	bool authenticated;
 	bool login;
 	bool qryFinished;
+
+	std::map<std::string, CThostFtdcInstrumentField*> symbolCache;
+	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
+	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
+	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
 
 	bool checkAPIInitialized();
 	bool checkConnected();
@@ -147,13 +156,13 @@ public:
 	virtual void OnRspCombActionInsert(CThostFtdcInputCombActionField* pInputCombAction, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///请求查询报单响应
-	virtual void OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询成交响应
 	virtual void OnRspQryTrade(CThostFtdcTradeField* pTrade, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///请求查询投资者持仓响应
-	virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInvestorPosition, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInvestorPosition, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询资金账户响应
 	virtual void OnRspQryTradingAccount(CThostFtdcTradingAccountField* pTradingAccount, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};

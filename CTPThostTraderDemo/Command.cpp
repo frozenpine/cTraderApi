@@ -6,8 +6,8 @@
 bool Command::commandExist(std::string commandName)
 {
 	return 
-		(commandTable.find(commandName) != commandTable.end()) && 
-		(subCommands.find(commandName) != subCommands.end());
+		(commandTable.find(commandName) != commandTable.end()) /*&& 
+		(subCommands.find(commandName) != subCommands.end())*/;
 }
 
 int Command::AddCommand(CommandDefine* define)
@@ -25,10 +25,12 @@ int Command::AddCommand(CommandDefine* define)
 	return 0;
 }
 
+/*
 int Command::AddSubCommand(Command* subCommand)
 {
 	return 0;
 }
+*/
 
 int Command::RunCommand(TDUserApi* api, std::string commandName, ...)
 {
@@ -60,4 +62,10 @@ void Command::PrintCommands()
 			<< define->command << ": "
 			<< define->description << std::endl;
 	}
+}
+
+void Command::Start()
+{
+	running = true;
+	PrintCommands();
 }

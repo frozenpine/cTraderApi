@@ -8,31 +8,35 @@
 struct CommandDefine {
 	const char* command;
 	const char* description;
-	int (*commandHandler)(TDUserApi* api, va_list args);
+	int (*commandHandler)(void* api, va_list args);
 };
 
 class Command
 {
 public:
-	Command() { tradeAPI = nullptr; commandName = "CLI"; }
-	Command(TDUserApi* api) { 
+	Command() { cmdInstance = nullptr; commandName = "CLI"; }
+	Command(void* api) { 
 		new (this)Command();
 		
-		tradeAPI = api; 
+		cmdInstance = api; 
 	}
 private:
 	std::string commandName;
-	TDUserApi* tradeAPI;
+	void* cmdInstance;
 
-	std::map<std::string, Command*> subCommands;
+	// std::map<std::string, Command*> subCommands;
 	std::map<std::string, CommandDefine*> commandTable;
 	std::vector<std::string> commandList;
 
+	bool running;
+
 	bool commandExist(std::string commandName);
+
+
 public:
 	int AddCommand(CommandDefine* define);
-	int AddSubCommand(Command* subCommand);
+	// int AddSubCommand(Command* subCommand);
 	int RunCommand(TDUserApi* api, std::string commandName, ...);
-	// void Start();
 	void PrintCommands();
+	void Start();
 };

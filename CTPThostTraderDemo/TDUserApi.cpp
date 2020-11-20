@@ -57,7 +57,7 @@ void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect)
 			break;
 		}
 
-		SLEEP(500);
+		SLEEP(100);
 	}
 }
 
@@ -107,10 +107,67 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 	}
 
 	if (pRspUserLogin != NULL) {
-		printf("Login succeed[%s]: %s, %s\n", pRspUserLogin->TradingDay, pRspUserLogin->BrokerID, pRspUserLogin->UserID);
+		printf(
+			"Login[%s.%s] succeed on front%d@0x%x: %s %s\n", 
+			pRspUserLogin->BrokerID, pRspUserLogin->UserID,
+			pRspUserLogin->FrontID, pRspUserLogin->SessionID,
+			pRspUserLogin->TradingDay, pRspUserLogin->LoginTime
+		);
 	}
 
 	login = true;
+}
+
+void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Query order failed[%d]: %s\n", pRspInfo)) {
+		return;
+	}
+
+	if (NULL != pOrder) {
+		orderDictByRef.insert_or_assign(pOrder->OrderRef, pOrder);
+		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, pOrder);
+
+		printf(
+			"Symbol[%s.%s] %s %s: Direction[%c] Offset[%s] %d@%.2f\n",
+			pOrder->ExchangeID, pOrder->InstrumentID, pOrder->OrderRef, pOrder->OrderSysID,
+			pOrder->Direction, pOrder->CombOffsetFlag, 
+			pOrder->VolumeTotalOriginal, pOrder->LimitPrice
+		);
+	}
+
+	if (bIsLast) {
+		qryFinished = true;
+		printf("Query order finished.\n");
+	}
+}
+
+void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInvestorPosition, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Query investor's position failed[%d]: %s\n", pRspInfo)) {
+		return;
+	}
+
+	if (NULL != pInvestorPosition) {
+		std::string symbol;
+		symbol.append(pInvestorPosition->ExchangeID);
+		symbol.append(".");
+		symbol.append(pInvestorPosition->InstrumentID);
+
+		positionCache.insert_or_assign(symbol, pInvestorPosition);
+
+		printf(
+			"Symbol[%s.%s]: Direction[%c] YdPos[%d] Pos[%d]\n", 
+			pInvestorPosition->ExchangeID, pInvestorPosition->InstrumentID,
+			pInvestorPosition->PosiDirection, pInvestorPosition->YdPosition, pInvestorPosition->Position
+		);
+	}
+
+	if (bIsLast) {
+		printf("Query investor's position finished.\n");
+
+		qryFinished = true;
+	}
 }
 
 void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
@@ -119,12 +176,17 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 		return;
 	}
 
-	if (pInstrument != NULL) {
-		printf("%s.%s: \n", pInstrument->ExchangeID, pInstrument->InstrumentID);
+	if (NULL != pInstrument) { 
+		std::string symbol;
+		symbol.append(pInstrument->ExchangeID);
+		symbol.append(".");
+		symbol.append(pInstrument->InstrumentID);
+
+		symbolCache.insert_or_assign(symbol, pInstrument);
 	}
 
 	if (bIsLast) {
-		printf("All instrument query response finished.\n");
+		printf("Query instrument info finished.\n");
 
 		qryFinished = true;
 	}

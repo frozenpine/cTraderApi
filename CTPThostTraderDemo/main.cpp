@@ -7,8 +7,8 @@
 
 const char flowPath[] = "flow/";
 
-int cmdVersion(TDUserApi* api, va_list args) {
-	printf("Current API version is: %s\n", api->GetApiVersion());
+int cmdVersion(void* api, va_list args) {
+	printf("Current API version is: %s\n", ((TDUserApi*)api)->GetApiVersion());
 
 	return 0;
 }
@@ -75,16 +75,32 @@ int main(int argc, char* argv[]) {
 	api->ReqUserLogin(&login);
 	printf("Send login: %s, %s\n", brokerID, userID);
 
-	CThostFtdcQryInstrumentField qry;
-	memset(&qry, 0, sizeof(qry));
-	api->ReqQryInstrument(&qry);
+	CThostFtdcQryInstrumentField qryIns;
+	memset(&qryIns, 0, sizeof(qryIns));
+	api->ReqQryInstrument(&qryIns);
 	printf("Quering instrument info.\n");
+
+	CThostFtdcQryInvestorPositionField qryPos;
+	memset(&qryPos, 0, sizeof(qryPos));
+	/* not mandatory */
+	// strncpy(qryPos.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	// strncpy(qryPos.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
+	api->ReqQryInvestorPosition(&qryPos);
+	printf("Quering investor's position.\n");
+
+	CThostFtdcQryOrderField qryOdr;
+	memset(&qryOdr, 0, sizeof(qryOdr));
+	/* not mandatory */
+	// strncpy(qryOdr.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	// strncpy(qryOdr.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
+	api->ReqQryOrder(&qryOdr);
+	printf("Qruering invesot's orders.\n");
 
 	api->WaitInitialData();
 
 	cli.PrintCommands();
 
-	cli.RunCommand(api, "test");
+	cli.RunCommand(api, "version");
 
 	api->Join();
 }
