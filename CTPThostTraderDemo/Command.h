@@ -9,7 +9,7 @@
 struct CommandDefine {
 	const char* command;
 	const char* description;
-	int (*commandHandler)(void* api, int argCount, va_list args);
+	int (*commandHandler)(void* api, const std::vector<std::string>&);
 };
 
 class Command
@@ -22,9 +22,9 @@ public:
 	}
 private:
 	std::string commandName;
+	std::string exitCmdName;
 	void* cmdInstance;
 
-	// std::map<std::string, Command*> subCommands;
 	std::map<std::string, CommandDefine*> commandTable;
 	std::vector<std::string> commandList;
 
@@ -40,9 +40,11 @@ private:
 		const std::string& delimiters = " ");
 public:
 	bool AddCommand(CommandDefine* define);
-	// int AddSubCommand(Command* subCommand);
-	int RunCommand(std::string commandName, int argCount, ...);
+	bool AddExitCommand(CommandDefine* define);
+	
+	int RunCommand(std::string commandName, const std::vector<std::string>& args);
 	void PrintCommands();
+	
 	void Start();
 	void Exit();
 };

@@ -9,18 +9,22 @@
 
 const char flowPath[] = "flow/";
 
-int cmdVersion(void* api, int argCount, va_list args) {
+int cmdVersion(void* api, const std::vector<std::string>& args) {
 	printf("Current API version is: %s\n", ((TDUserApi*)api)->GetApiVersion());
 
-	for (int i = 0; i < argCount; i++) {
-		std::cout << va_arg(args, std::string) << std::endl;
+	for (auto arg : args) {
+		std::cout << arg << std::endl;
 	}
 
 	return 0;
 }
 
-int cmdExit(void* api, int argCount, va_list args) {
+int cmdExit(void* api, const std::vector<std::string>& args) {
 	printf("Exit called.\n");
+
+	for (auto arg : args) {
+		std::cout << arg << std::endl;
+	}
 
 	((TDUserApi*)api)->Release();
 
@@ -66,12 +70,12 @@ int main(int argc, char* argv[]) {
 	CommandDefine exitCommand = { "exit", "Release API & EXIT.", cmdExit };
 
 	cli.AddCommand(&versionCommand);
-	cli.AddCommand(&exitCommand);
+	cli.AddExitCommand(&exitCommand);
 
 	api->CreateFtdcTraderApi(flowPath);
-	api->SubscribePrivateTopic(THOST_TERT_QUICK);
-	api->SubscribePublicTopic(THOST_TERT_QUICK);
-	api->RegisterFront(conn);
+	//api->SubscribePrivateTopic(THOST_TERT_QUICK);
+	//api->SubscribePublicTopic(THOST_TERT_QUICK);
+	//api->RegisterFront(conn);
 	//api->Init();
 
 	//CThostFtdcReqAuthenticateField auth;
@@ -112,13 +116,7 @@ int main(int argc, char* argv[]) {
 	//api->ReqQryOrder(&qryOdr);
 	//printf("Quering invesot's orders.\n");
 
-	//api->WaitInitialData();
-
-	/*cli.PrintCommands();
-
-	cli.RunCommand("version");
-
-	cli.RunCommand("exit");*/
+	api->WaitInitialData();
 
 	cli.Start();
 }

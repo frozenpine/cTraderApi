@@ -24,20 +24,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libs\x64\thosttraderapi_se.lib">
-      <Filter>libs\x64</Filter>
-    </Library>
-    <Library Include="libs\x86\thosttraderapi_se.lib">
-      <Filter>libs\x86</Filter>
-    </Library>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="libs\x64\thosttraderapi_se.dll">
-      <Filter>libs\x64</Filter>
-    </None>
-    <None Include="libs\x86\thosttraderapi_se.dll">
-      <Filter>libs\x86</Filter>
-    </None>
     <None Include="error.dtd">
       <Filter>资源文件</Filter>
     </None>
@@ -46,6 +32,12 @@
     </None>
     <None Include="setting.ini.example">
       <Filter>资源文件</Filter>
+    </None>
+    <None Include="..\cThostTraderApi\libs\x64\thosttraderapi_se.dll">
+      <Filter>libs\x64</Filter>
+    </None>
+    <None Include="..\cThostTraderApi\libs\x86\thosttraderapi_se.dll">
+      <Filter>libs\x86</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -86,5 +78,13 @@
     <ClCompile Include="Command.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\cThostTraderApi\libs\x64\thosttraderapi_se.lib">
+      <Filter>libs\x64</Filter>
+    </Library>
+    <Library Include="..\cThostTraderApi\libs\x86\thosttraderapi_se.lib">
+      <Filter>libs\x86</Filter>
+    </Library>
   </ItemGroup>
 </Project>

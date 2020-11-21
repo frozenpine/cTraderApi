@@ -17,6 +17,8 @@ void Command::cmdlineSplit(
 	std::vector<std::string>& args, 
 	const std::string& delimiters)
 {
+	args.clear();
+
 	std::string::size_type lastPos = input.find_first_not_of(delimiters, 0);
 	std::string::size_type pos = input.find_first_of(delimiters, lastPos);
 	
@@ -53,14 +55,13 @@ bool Command::AddCommand(CommandDefine* define)
 	return true;
 }
 
-/*
-int Command::AddSubCommand(Command* subCommand)
+bool Command::AddExitCommand(CommandDefine* define)
 {
-	return 0;
+	exitCmdName = define->command;
+	return AddCommand(define);
 }
-*/
 
-int Command::RunCommand(std::string commandName, int argCount, ...)
+int Command::RunCommand(std::string commandName, const std::vector<std::string>& args)
 {
 	if (!commandExist(commandName)) {
 		return unknownCommandCode;
@@ -68,12 +69,7 @@ int Command::RunCommand(std::string commandName, int argCount, ...)
 
 	auto handler = commandTable.at(commandName)->commandHandler;
 
-	va_list args;
-	va_start(args, commandName);
-
-	int rtn = (*handler)(cmdInstance, argCount, args);
-
-	va_end(args);
+	int rtn = (*handler)(cmdInstance, args);
 
 	return rtn;
 }
@@ -108,14 +104,12 @@ void Command::Start()
 
 		cmdlineSplit(inputs, cmd, args);
 
-		if ("exit" == cmd) {
+		if (exitCmdName == cmd) {
 			Exit();
-
-			continue;
 		}
 
 		// TODO: 需要修复vector到可变长参数的转换
-		if (unknownCommandCode == RunCommand(cmd, args.size(), args.data())) {
+		if (unknownCommandCode == RunCommand(cmd, args)) {
 			std::cout << "Unknown command: " << cmd << std::endl;
 		}
 	}
@@ -123,7 +117,5 @@ void Command::Start()
 
 void Command::Exit()
 {
-	RunCommand("exit", 0);
-
 	running = false;
 }
