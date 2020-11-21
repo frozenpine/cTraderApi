@@ -12,23 +12,39 @@ const char flowPath[] = "flow/";
 int cmdVersion(void* api, const std::vector<std::string>& args) {
 	printf("Current API version is: %s\n", ((TDUserApi*)api)->GetApiVersion());
 
-	for (auto arg : args) {
-		std::cout << arg << std::endl;
-	}
-
 	return 0;
 }
 
 int cmdExit(void* api, const std::vector<std::string>& args) {
 	printf("Exit called.\n");
 
-	for (auto arg : args) {
-		std::cout << arg << std::endl;
-	}
-
 	((TDUserApi*)api)->Release();
 
 	return 0;
+}
+
+int cmdOrderNew(void* api, const std::vector<std::string>& args) {
+	CThostFtdcInputOrderField ord = { 0 };
+	
+	// TODO: 填写限价单参数
+
+	return ((TDUserApi*)api)->ReqOrderInsert(&ord);
+}
+
+int cmdOrderModify(void* api, const std::vector<std::string>& args) {
+	CThostFtdcInputOrderActionField ord = { 0 };
+
+	// TODO: 填写改单参数
+
+	return ((TDUserApi*)api)->ReqOrderAction(&ord);
+}
+
+int cmdOrderCancel(void* api, const std::vector<std::string>& args) {
+	CThostFtdcInputOrderActionField ord = { 0 };
+
+	// TODO: 填写撤单参数
+
+	return ((TDUserApi*)api)->ReqOrderAction(&ord);
 }
 
 int main(int argc, char* argv[]) {
@@ -68,53 +84,59 @@ int main(int argc, char* argv[]) {
 
 	CommandDefine versionCommand = { "version", "Print API's version info.", cmdVersion };
 	CommandDefine exitCommand = { "exit", "Release API & EXIT.", cmdExit };
+	CommandDefine orderNewCommand = { "new", "Make a limited price order.", cmdOrderNew };
+	CommandDefine orderModifyCommand = { "modify", "Modify an exist order.", cmdOrderModify };
+	CommandDefine orderCancelCommand = { "new", "Make a limited price order.", cmdOrderCancel };
 
 	cli.AddCommand(&versionCommand);
 	cli.AddExitCommand(&exitCommand);
+	cli.AddCommand(&orderNewCommand);
+	cli.AddCommand(&orderModifyCommand);
+	cli.AddCommand(&orderCancelCommand);
 
 	api->CreateFtdcTraderApi(flowPath);
-	//api->SubscribePrivateTopic(THOST_TERT_QUICK);
-	//api->SubscribePublicTopic(THOST_TERT_QUICK);
-	//api->RegisterFront(conn);
-	//api->Init();
+	api->SubscribePrivateTopic(THOST_TERT_QUICK);
+	api->SubscribePublicTopic(THOST_TERT_QUICK);
+	api->RegisterFront(conn);
+	api->Init();
 
-	//CThostFtdcReqAuthenticateField auth;
-	//memset(&auth, 0, sizeof(auth));
-	//strncpy(auth.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType)-1);
-	//strncpy(auth.UserID, userID, sizeof(TThostFtdcUserIDType)-1);
-	//strncpy(auth.AppID, appID, sizeof(TThostFtdcAppIDType)-1);
-	//strncpy(auth.AuthCode, authCode, sizeof(TThostFtdcAuthCodeType)-1);
-	//api->ReqAuthenticate(&auth);
-	//printf("Send authentication: %s, %s, %s\n", brokerID, userID, appID);
+	CThostFtdcReqAuthenticateField auth;
+	memset(&auth, 0, sizeof(auth));
+	strncpy(auth.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType)-1);
+	strncpy(auth.UserID, userID, sizeof(TThostFtdcUserIDType)-1);
+	strncpy(auth.AppID, appID, sizeof(TThostFtdcAppIDType)-1);
+	strncpy(auth.AuthCode, authCode, sizeof(TThostFtdcAuthCodeType)-1);
+	api->ReqAuthenticate(&auth);
+	printf("Send authentication: %s, %s, %s\n", brokerID, userID, appID);
 
-	//CThostFtdcReqUserLoginField login;
-	//memset(&login, 0, sizeof(login));
-	//strncpy(login.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType)-1);
-	//strncpy(login.UserID, userID, sizeof(TThostFtdcUserIDType)-1);
-	//strncpy(login.Password, userPass, sizeof(TThostFtdcPasswordType)-1);
-	//api->ReqUserLogin(&login);
-	//printf("Send login: %s, %s\n", brokerID, userID);
+	CThostFtdcReqUserLoginField login;
+	memset(&login, 0, sizeof(login));
+	strncpy(login.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType)-1);
+	strncpy(login.UserID, userID, sizeof(TThostFtdcUserIDType)-1);
+	strncpy(login.Password, userPass, sizeof(TThostFtdcPasswordType)-1);
+	api->ReqUserLogin(&login);
+	printf("Send login: %s, %s\n", brokerID, userID);
 
-	//CThostFtdcQryInstrumentField qryIns;
-	//memset(&qryIns, 0, sizeof(qryIns));
-	//api->ReqQryInstrument(&qryIns);
-	//printf("Quering instrument info.\n");
+	CThostFtdcQryInstrumentField qryIns;
+	memset(&qryIns, 0, sizeof(qryIns));
+	api->ReqQryInstrument(&qryIns);
+	printf("Quering instrument info.\n");
 
-	//CThostFtdcQryInvestorPositionField qryPos;
-	//memset(&qryPos, 0, sizeof(qryPos));
-	///* not mandatory */
-	//// strncpy(qryPos.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-	//// strncpy(qryPos.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
-	//api->ReqQryInvestorPosition(&qryPos);
-	//printf("Quering investor's position.\n");
+	CThostFtdcQryInvestorPositionField qryPos;
+	memset(&qryPos, 0, sizeof(qryPos));
+	/* not mandatory */
+	// strncpy(qryPos.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	// strncpy(qryPos.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
+	api->ReqQryInvestorPosition(&qryPos);
+	printf("Quering investor's position.\n");
 
-	//CThostFtdcQryOrderField qryOdr;
-	//memset(&qryOdr, 0, sizeof(qryOdr));
-	///* not mandatory */
-	//// strncpy(qryOdr.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-	//// strncpy(qryOdr.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
-	//api->ReqQryOrder(&qryOdr);
-	//printf("Quering invesot's orders.\n");
+	CThostFtdcQryOrderField qryOdr;
+	memset(&qryOdr, 0, sizeof(qryOdr));
+	/* not mandatory */
+	// strncpy(qryOdr.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	// strncpy(qryOdr.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
+	api->ReqQryOrder(&qryOdr);
+	printf("Quering invesot's orders.\n");
 
 	api->WaitInitialData();
 
