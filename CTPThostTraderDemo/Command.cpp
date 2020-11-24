@@ -78,10 +78,10 @@ int Command::RunCommand(std::string commandName, const std::vector<std::string>&
 void Command::PrintCommands(std::string cmdName)
 {
 	if ("" == cmdName) {
-		std::cout << "Use \"help\" to show this command list again." << std::endl;
+		std::cout << std::endl << "Use \"help\" to show this command list again." << std::endl;
 	}
 
-	std::cout << "Command List:" << std::endl;
+	std::cout << std::endl << "Command List:" << std::endl;
 
 	int cmdMaxSize = 0;
 
