@@ -124,9 +124,12 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)cThostTraderApi\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>thosttraderapi_se.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreLinkEvent>
+      <Command>copy /Y /B "$(SolutionDir)$(ProjectName)\libs\x64\thosttraderapi_se.dll" "$(SolutionDir)x64\$(Configuration)\"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -142,14 +145,17 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)cThostTraderApi\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>thosttraderapi_se.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreLinkEvent>
+      <Command>copy /Y /B "$(SolutionDir)$(ProjectName)\libs\x64\thosttraderapi_se.dll" "$(SolutionDir)x64\$(Configuration)\"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="..\cThostTraderApi\libs\x64\thosttraderapi_se.dll" />
-    <None Include="..\cThostTraderApi\libs\x86\thosttraderapi_se.dll" />
     <None Include="error.dtd" />
+    <None Include="libs\x64\thosttraderapi_se.dll" />
+    <None Include="libs\x86\thosttraderapi_se.dll" />
     <None Include="setting.ini" />
     <None Include="setting.ini.example" />
   </ItemGroup>
@@ -171,8 +177,8 @@
     <ClCompile Include="TDUserApi.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\cThostTraderApi\libs\x64\thosttraderapi_se.lib" />
-    <Library Include="..\cThostTraderApi\libs\x86\thosttraderapi_se.lib" />
+    <Library Include="libs\x64\thosttraderapi_se.lib" />
+    <Library Include="libs\x86\thosttraderapi_se.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

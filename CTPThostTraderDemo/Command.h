@@ -9,6 +9,7 @@
 struct CommandDefine {
 	const char* command;
 	const char* description;
+	const char* usage;
 	int (*commandHandler)(void* api, const std::vector<std::string>&);
 };
 
@@ -31,7 +32,6 @@ private:
 	bool running;
 
 	bool commandExist(std::string commandName);
-	const int unknownCommandCode = 255;
 
 	void cmdlineSplit(
 		const std::string& input, 
@@ -39,11 +39,14 @@ private:
 		std::vector<std::string>& tokens, 
 		const std::string& delimiters = " ");
 public:
+	static const int CMDUnknownCommand = 255;
+	static const int CMDInvalidArgs = 250;
+public:
 	bool AddCommand(CommandDefine* define);
 	bool AddExitCommand(CommandDefine* define);
 	
 	int RunCommand(std::string commandName, const std::vector<std::string>& args);
-	void PrintCommands();
+	void PrintCommands(std::string cmdName = "");
 	
 	void Start();
 	void Exit();

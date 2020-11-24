@@ -46,7 +46,7 @@ private:
 	bool authenticated;
 	bool login;
 	bool qryFinished;
-	int maxOrderRef;
+	std::atomic<int> maxOrderRef;
 
 	std::map<std::string, CThostFtdcInstrumentField*> symbolCache;
 	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
@@ -65,6 +65,7 @@ private:
 
 	void waitUntil(bool (TDUserApi::* checkFn)(), bool expect);
 public:
+	CThostFtdcRspUserLoginField User;
 	void WaitInitialData();
 public:
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
@@ -108,7 +109,7 @@ public:
 	virtual void OnRspGenUserText(CThostFtdcRspGenUserTextField* pRspGenUserText, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///报单录入请求响应
-	virtual void OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///预埋单录入请求响应
 	virtual void OnRspParkedOrderInsert(CThostFtdcParkedOrderField* pParkedOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
@@ -294,13 +295,13 @@ public:
 	virtual void OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///报单通知
-	virtual void OnRtnOrder(CThostFtdcOrderField* pOrder) {};
+	virtual void OnRtnOrder(CThostFtdcOrderField* pOrder);
 
 	///成交通知
 	virtual void OnRtnTrade(CThostFtdcTradeField* pTrade) {};
 
 	///报单录入错误回报
-	virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo) {};
+	virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo);
 
 	///报单操作错误回报
 	virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField* pOrderAction, CThostFtdcRspInfoField* pRspInfo) {};
@@ -551,7 +552,7 @@ public:
 	int ReqUserLoginWithOTP(CThostFtdcReqUserLoginWithOTPField* pReqUserLoginWithOTP) {};
 
 	///报单录入请求
-	int ReqOrderInsert(CThostFtdcInputOrderField* pInputOrder) {};
+	int ReqOrderInsert(CThostFtdcInputOrderField* pInputOrder);
 
 	///预埋单录入请求
 	int ReqParkedOrderInsert(CThostFtdcParkedOrderField* pParkedOrder) {};
@@ -560,7 +561,7 @@ public:
 	int ReqParkedOrderAction(CThostFtdcParkedOrderActionField* pParkedOrderAction) {};
 
 	///报单操作请求
-	int ReqOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction) {};
+	int ReqOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction);
 
 	///查询最大报单数量请求
 	int ReqQueryMaxOrderVolume(CThostFtdcQueryMaxOrderVolumeField* pQueryMaxOrderVolume) {};

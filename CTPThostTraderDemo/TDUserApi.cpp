@@ -114,6 +114,10 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 	}
 
 	if (pRspUserLogin != NULL) {
+		memcpy(&User, pRspUserLogin, sizeof(CThostFtdcRspUserLoginField));
+
+		maxOrderRef = atoi(pRspUserLogin->MaxOrderRef);
+		
 		printf(
 			"Login[%s.%s] succeed on front%d@0x%X: %s %s\n", 
 			pRspUserLogin->BrokerID, pRspUserLogin->UserID,
@@ -125,9 +129,30 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 	}
 }
 
+void TDUserApi::OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	checkRspError("Request order insert failed[%d]: %s\n", pRspInfo);
+
+	if (NULL != pInputOrder) {
+		printf(
+			"Input order is:"
+			"\tOrderRef: %s\n"
+			"\tInstrumentID: %s\n"
+			"\tDirection: %s\n"
+			"\tPrice: %.2lf\n"
+			"\tVolume: %d\n",
+			pInputOrder->OrderRef, pInputOrder->InstrumentID,
+			THOST_FTDC_D_Buy == pInputOrder->Direction ? "Buy" : "Sell",
+			pInputOrder->LimitPrice, pInputOrder->VolumeTotalOriginal
+		);
+	}
+}
+
 void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query order failed[%d]: %s\n", pRspInfo)) {
+		setFlag(&qryFinished, true);
+
 		return;
 	}
 
@@ -153,6 +178,8 @@ void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoFie
 void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInvestorPosition, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query investor's position failed[%d]: %s\n", pRspInfo)) {
+		setFlag(&qryFinished, true);
+
 		return;
 	}
 
@@ -181,6 +208,8 @@ void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInves
 void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query instrument failed[%d]: %s\n", pRspInfo)) {
+		setFlag(&qryFinished, true);
+
 		return;
 	}
 
@@ -198,6 +227,25 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 
 		setFlag(&qryFinished, true);
 	}
+}
+
+void TDUserApi::OnRtnOrder(CThostFtdcOrderField* pOrder)
+{
+	printf(
+		"%s.%s @ %s %s: "
+		"OrderRef[%s], Status[%c], Direction[%s], Price[%.2lf], Volume[%d] Traded[%d] "
+		"Updated @ %s\n",
+		pOrder->ExchangeID, pOrder->InstrumentID, pOrder->InsertDate, pOrder->InsertTime,  
+		pOrder->OrderRef, pOrder->OrderStatus, 
+		THOST_FTDC_D_Buy == pOrder->Direction ? "Buy" : "Sell",
+		pOrder->LimitPrice, pOrder->VolumeTotalOriginal, pOrder->VolumeTraded,
+		pOrder->UpdateTime
+	);
+}
+
+void TDUserApi::OnErrRtnOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo)
+{
+	printf("Order rejected: %s", pRspInfo->ErrorMsg);
 }
 
 void TDUserApi::CreateFtdcTraderApi(const char* pszFlowPath)
@@ -343,6 +391,26 @@ int TDUserApi::ReqUserAuthMethod(CThostFtdcReqUserAuthMethodField* pReqUserAuthM
 	waitUntil(&TDUserApi::checkUserLogin, true);
 
 	return 0;
+}
+
+int TDUserApi::ReqOrderInsert(CThostFtdcInputOrderField* pInputOrder)
+{
+	/*waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);*/
+
+	/*TThostFtdcOrderRefType orderRef = { 0 };
+	sprintf(orderRef, "%d", ++maxOrderRef);
+	strcpy_s(pInputOrder->OrderRef, orderRef);*/
+
+	return pApi->ReqOrderInsert(pInputOrder, ++nRequestID);
+}
+
+int TDUserApi::ReqOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction)
+{
+	/*waitUntil(&TDUserApi::checkUserLogin, true);
+	waitUntil(&TDUserApi::checkQryStatus, true);*/
+	
+	return pApi->ReqOrderAction(pInputOrderAction, ++nRequestID);
 }
 
 int TDUserApi::ReqQryOrder(CThostFtdcQryOrderField* pQryOrder)
