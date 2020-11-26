@@ -2,12 +2,15 @@
 #include <ctype.h>
 #include <csignal>
 #include <iostream>
+#include <regex>
 
 #include "TDUserApi.h"
 #include "ini.h"
 #include "Command.h"
 
 const char flowPath[] = "flow/";
+const std::regex floatPattern("\\d*\.\\d+");
+const std::regex intPattern("\\d+");
 
 int cmdVersion(void* api, const std::vector<std::string>& args) {
 	printf("Current API version is: %s\n", ((TDUserApi*)api)->GetApiVersion());
@@ -41,8 +44,16 @@ int cmdOrderNew(void* api, const std::vector<std::string>& args) {
 		return Command::CMDInvalidArgs;
 	}
 
+	if (!std::regex_match(args[2], floatPattern)) {
+		fprintf(stderr, "price must be a float number.\n");
+		return Command::CMDInvalidArgs;
+	}
 	double price = atof(args[2].c_str());
 
+	if (!std::regex_match(args[3], intPattern)) {
+		fprintf(stderr, "volume must be a int number.\n");
+		return Command::CMDInvalidArgs;
+	}
 	int volume = atoi(args[3].c_str());
 
 	CThostFtdcInputOrderField ord = { 0 };
