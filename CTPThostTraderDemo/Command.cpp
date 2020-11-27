@@ -85,7 +85,7 @@ void Command::PrintCommands(std::string cmdName)
 
 	int cmdMaxSize = 0;
 
-	for (auto cmd : commandList) {
+	for (std::string cmd : commandList) {
 		if (cmd.size() > cmdMaxSize) {
 			cmdMaxSize = cmd.size();
 		}
@@ -97,11 +97,11 @@ void Command::PrintCommands(std::string cmdName)
 		auto define = commandTable.at(commandList[i]);
 		
 		std::cout
-			<< std::setw(cmdMaxSize + 2) << std::setfill(' ') << define->command << "    "
+			<< std::setw(std::streamsize(cmdMaxSize) + 2) << std::setfill(' ') << define->command << "    "
 			<< define->description << std::endl;
 		if (NULL != define->usage) {
 			std::cout
-				<< std::setw(cmdMaxSize + 2 + 4) << std::setfill(' ') << " "
+				<< std::setw(std::streamsize(cmdMaxSize) + 2 + 4) << std::setfill(' ') << " "
 				<< "Usage: " << define->usage << std::endl;
 		}
 	}

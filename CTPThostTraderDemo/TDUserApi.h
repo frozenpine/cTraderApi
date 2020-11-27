@@ -307,7 +307,7 @@ public:
 	virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField* pOrderAction, CThostFtdcRspInfoField* pRspInfo) {};
 
 	///合约交易状态通知
-	virtual void OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField* pInstrumentStatus) {};
+	virtual void OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField* pInstrumentStatus);
 
 	///交易所公告通知
 	virtual void OnRtnBulletin(CThostFtdcBulletinField* pBulletin) {};

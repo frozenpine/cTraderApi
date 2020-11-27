@@ -248,6 +248,15 @@ void TDUserApi::OnErrRtnOrderInsert(CThostFtdcInputOrderField* pInputOrder, CTho
 	printf("Order rejected: %s", pRspInfo->ErrorMsg);
 }
 
+void TDUserApi::OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField* pInstrumentStatus)
+{
+	printf(
+		"%s.%s Enter status[%c]: %s\n", 
+		pInstrumentStatus->ExchangeID, pInstrumentStatus->InstrumentID, 
+		pInstrumentStatus->InstrumentStatus, pInstrumentStatus->EnterTime
+	);
+}
+
 void TDUserApi::CreateFtdcTraderApi(const char* pszFlowPath)
 {
 	assert(!checkAPIInitialized());
