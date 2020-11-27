@@ -34,6 +34,7 @@ public:
 		authenticated = false;
 		login = false;
 		qryFinished = true;
+		responsed = true;
 	};
 protected:
 	~TDUserApi();
@@ -46,6 +47,7 @@ private:
 	bool authenticated;
 	bool login;
 	bool qryFinished;
+	bool responsed;
 	std::atomic<int> maxOrderRef;
 
 	std::map<std::string, CThostFtdcInstrumentField*> symbolCache;
@@ -53,11 +55,12 @@ private:
 	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
 	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
 
-	bool checkAPIInitialized();
-	bool checkConnected();
-	bool checkAuthenticated();
-	bool checkUserLogin();
-	bool checkQryStatus();
+	bool checkAPIInitialized() { return pApi != NULL; };
+	bool checkConnected() { return connected; };
+	bool checkAuthenticated() { return authenticated; };
+	bool checkUserLogin() { return login; };
+	bool checkQryStatus() { return qryFinished; };
+	bool checkRspStatus() { return responsed; };
 
 	void setFlag(bool* flag, bool value);
 
@@ -66,7 +69,8 @@ private:
 	void waitUntil(bool (TDUserApi::* checkFn)(), bool expect);
 public:
 	CThostFtdcRspUserLoginField User;
-	void WaitInitialData();
+	void WaitInitialData() { waitUntil(&TDUserApi::checkQryStatus, true); };
+	void WaitResponse() { waitUntil(&TDUserApi::checkRspStatus, true); };
 public:
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();

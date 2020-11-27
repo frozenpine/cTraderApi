@@ -107,44 +107,45 @@ void Command::PrintCommands(std::string cmdName)
 	}
 }
 
-void Command::Start()
+void Command::Start(Command* instance)
 {
-	running = true;
-	PrintCommands();
+	instance->PrintCommands();
 
 	std::string inputs;
 	std::string cmd;
 	std::vector<std::string> args;
 
-	while (running) {
-		std::cout << commandName << " > ";
+	while (instance->IsRunning()) {
+		std::cout << instance->GetName() << " > ";
 		
 		std::getline(std::cin, inputs);
 
-		cmdlineSplit(inputs, cmd, args);
+		Command::cmdlineSplit(inputs, cmd, args);
 
 		if ("" == cmd) { 
 			continue; 
 		}
 
 		if ("help" == cmd) { 
-			PrintCommands(); 
+			instance->PrintCommands(); 
 			continue; 
 		}
 
-		if (exitCmdName == cmd) { 
-			Exit(); 
+		if (instance->GetExitName() == cmd) { 
+			instance->Exit(); 
 		}
 
-		int rtn = RunCommand(cmd, args);
+		int rtn = instance->RunCommand(cmd, args);
 
 		switch (rtn)
 		{
+		case CMDSucceeded:
+			break;
 		case CMDUnknownCommand:
 			std::cerr << "Unknown command: " << cmd << std::endl;
 			break;
 		case CMDInvalidArgs:
-			PrintCommands(cmd);
+			instance->PrintCommands(cmd);
 			break;
 		default:
 			std::cout << "Command return code: " << rtn << std::endl;
@@ -156,4 +157,13 @@ void Command::Start()
 void Command::Exit()
 {
 	running = false;
+}
+
+void Command::RunForever()
+{
+	running = true;
+	
+	std::thread tr = std::thread(Start, this);
+
+	tr.join();
 }

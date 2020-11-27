@@ -12,31 +12,6 @@ TDUserApi::~TDUserApi()
 	pApi = NULL;
 }
 
-bool TDUserApi::checkAPIInitialized()
-{
-	return pApi != NULL;
-}
-
-bool TDUserApi::checkConnected()
-{
-	return connected;
-}
-
-bool TDUserApi::checkAuthenticated()
-{
-	return authenticated;
-}
-
-bool TDUserApi::checkUserLogin()
-{
-	return login;
-}
-
-bool TDUserApi::checkQryStatus()
-{
-	return qryFinished;
-}
-
 void TDUserApi::setFlag(bool* flag, bool value)
 {
 	std::lock_guard<std::mutex> locker(g_lock);
@@ -64,11 +39,6 @@ void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect)
 	while ((this->*checkFn)() != expect) {
 		g_cond.wait(locker);
 	}
-}
-
-void TDUserApi::WaitInitialData()
-{
-	waitUntil(&TDUserApi::checkQryStatus, true);
 }
 
 void TDUserApi::OnFrontConnected()
