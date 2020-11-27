@@ -62,8 +62,8 @@ public:
 		const std::string& delimiters = " ");
 public:
 	std::string GetName() { return name; }
-	bool IsRunning() { return running; }
 	std::string GetExitName() { return exitCmdName; }
+	bool IsRunning() { return running; }
 	
 	bool AddCommand(CommandDefine* define);
 	bool AddExitCommand(CommandDefine* define);

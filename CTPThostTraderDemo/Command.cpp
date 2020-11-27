@@ -6,9 +6,7 @@
 
 bool Command::commandExist(std::string commandName)
 {
-	return 
-		(commandTable.find(commandName) != commandTable.end()) /*&& 
-		(subCommands.find(commandName) != subCommands.end())*/;
+	return commandTable.find(commandName) != commandTable.end();
 }
 
 void Command::cmdlineSplit(
@@ -30,8 +28,7 @@ void Command::cmdlineSplit(
 		
 		if (0 == tokenCount++) {
 			cmd = token;
-		}
-		else {
+		} else {
 			args.push_back(token);
 		}
 

@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 
 	TDUserApi *api = new(TDUserApi);
 
-	Command cli = Command(api);
+	Command cli = Command("CTP", api);
 
 	CommandDefine versionCommand = { "version", "Print API's version info.", NULL, cmdVersion };
 	CommandDefine exitCommand = { "exit", "Release API & EXIT.", NULL, cmdExit };
