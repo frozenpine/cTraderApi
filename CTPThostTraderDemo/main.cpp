@@ -9,7 +9,7 @@
 #include "Command.h"
 
 const char flowPath[] = "flow/";
-const std::regex floatPattern("\\d*\\.\\d+");
+const std::regex floatPattern("\\d*\\.?\\d+");
 const std::regex intPattern("\\d+");
 
 int cmdVersion(void* api, const std::vector<std::string>& args) {
@@ -22,6 +22,14 @@ int cmdExit(void* api, const std::vector<std::string>& args) {
 	printf("Exit called.\n");
 
 	((TDUserApi*)api)->Release();
+
+	return 0;
+}
+
+int cmdPostWait(void* api, const std::vector<std::string>& args) {
+	auto apiIns = ((TDUserApi*)api);
+
+	apiIns->WaitResponse();
 
 	return 0;
 }
@@ -154,6 +162,8 @@ int main(int argc, char* argv[]) {
 	cli.AddCommand(&orderNewCommand);
 	cli.AddCommand(&orderModifyCommand);
 	cli.AddCommand(&orderCancelCommand);
+
+	cli.RegisterPostCommand(cmdPostWait);
 
 	api->CreateFtdcTraderApi(flowPath);
 	api->SubscribePrivateTopic(THOST_TERT_QUICK);

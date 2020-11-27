@@ -7,20 +7,34 @@
 
 #include "TDUserApi.h"
 
+typedef int (*CmdHandler)(void* api, const std::vector<std::string>&);
+
 struct CommandDefine {
 	const char* command;
 	const char* description;
 	const char* usage;
-	int (*commandHandler)(void* api, const std::vector<std::string>&);
+	CmdHandler handler;
 };
 
 class Command
 {
 public:
-	Command(void* api) {
+	Command() { 
 		name = "CLI";
 
+		cmdInstance = NULL;
+		cmdPreHandler = NULL;
+		cmdPostHandler = NULL;
+	}
+	Command(void* api) {
+		new (this)Command();
+
 		cmdInstance = api;
+	}
+	Command(std::string cmdName, void* api) {
+		new (this)Command(api);
+
+		name = cmdName;
 	}
 private:
 	std::string name;
@@ -29,6 +43,9 @@ private:
 
 	std::map<std::string, CommandDefine*> commandTable;
 	std::vector<std::string> commandList;
+
+	CmdHandler cmdPreHandler;
+	CmdHandler cmdPostHandler;
 
 	bool running;
 
@@ -50,6 +67,9 @@ public:
 	
 	bool AddCommand(CommandDefine* define);
 	bool AddExitCommand(CommandDefine* define);
+
+	void RegisterPreCommand(CmdHandler handler) { cmdPreHandler = handler; };
+	void RegisterPostCommand(CmdHandler handler) { cmdPostHandler = handler; };
 	
 	int RunCommand(std::string commandName, const std::vector<std::string>& args);
 	void PrintCommands(std::string cmdName = "");

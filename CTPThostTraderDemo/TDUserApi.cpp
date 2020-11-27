@@ -105,7 +105,7 @@ void TDUserApi::OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostF
 
 	if (NULL != pInputOrder) {
 		printf(
-			"Input order is:"
+			"Input order is:\n"
 			"\tOrderRef: %s\n"
 			"\tInstrumentID: %s\n"
 			"\tDirection: %s\n"
@@ -116,6 +116,15 @@ void TDUserApi::OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostF
 			pInputOrder->LimitPrice, pInputOrder->VolumeTotalOriginal
 		);
 	}
+
+	setFlag(&responsed, true);
+}
+
+void TDUserApi::OnRspOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	checkRspError("Request order action failed[%d]: %s\n", pRspInfo);
+
+	setFlag(&responsed, true);
 }
 
 void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
@@ -215,7 +224,7 @@ void TDUserApi::OnRtnOrder(CThostFtdcOrderField* pOrder)
 
 void TDUserApi::OnErrRtnOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo)
 {
-	printf("Order rejected: %s", pRspInfo->ErrorMsg);
+	printf("Order rejected: %s\n", pRspInfo->ErrorMsg);
 }
 
 void TDUserApi::OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField* pInstrumentStatus)
@@ -380,6 +389,7 @@ int TDUserApi::ReqOrderInsert(CThostFtdcInputOrderField* pInputOrder)
 	/*TThostFtdcOrderRefType orderRef = { 0 };
 	sprintf(orderRef, "%d", ++maxOrderRef);
 	strcpy_s(pInputOrder->OrderRef, orderRef);*/
+	setFlag(&responsed, false);
 
 	return pApi->ReqOrderInsert(pInputOrder, ++nRequestID);
 }
@@ -388,6 +398,8 @@ int TDUserApi::ReqOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction
 {
 	/*waitUntil(&TDUserApi::checkUserLogin, true);
 	waitUntil(&TDUserApi::checkQryStatus, true);*/
+
+	setFlag(&responsed, false);
 	
 	return pApi->ReqOrderAction(pInputOrderAction, ++nRequestID);
 }

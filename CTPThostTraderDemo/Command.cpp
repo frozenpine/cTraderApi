@@ -68,7 +68,7 @@ int Command::RunCommand(std::string commandName, const std::vector<std::string>&
 		return CMDUnknownCommand;
 	}
 
-	auto handler = commandTable.at(commandName)->commandHandler;
+	auto handler = commandTable.at(commandName)->handler;
 
 	int rtn = (*handler)(cmdInstance, args);
 
@@ -131,6 +131,10 @@ void Command::Start(Command* instance)
 			continue; 
 		}
 
+		if (NULL != instance->cmdPreHandler) {
+			(*instance->cmdPreHandler)(instance->cmdInstance, args);
+		}
+
 		if (instance->GetExitName() == cmd) { 
 			instance->Exit(); 
 		}
@@ -150,6 +154,10 @@ void Command::Start(Command* instance)
 		default:
 			std::cout << "Command return code: " << rtn << std::endl;
 			break;
+		}
+
+		if (NULL != instance->cmdPostHandler) {
+			(*instance->cmdPostHandler)(instance->cmdInstance, args);
 		}
 	}
 }
