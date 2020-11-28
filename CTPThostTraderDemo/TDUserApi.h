@@ -66,11 +66,13 @@ private:
 
 	bool checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* rspInfo);
 
-	void waitUntil(bool (TDUserApi::* checkFn)(), bool expect);
+	void waitUntil(bool (TDUserApi::* checkFn)(), bool expect, int timeout=0);
 public:
 	CThostFtdcRspUserLoginField User;
-	void WaitInitialData() { waitUntil(&TDUserApi::checkQryStatus, true); };
-	void WaitResponse() { waitUntil(&TDUserApi::checkRspStatus, true); };
+	// timeout in milliseconds, 0 mean infinite.
+	void WaitInitialData(int timeout = 0) { waitUntil(&TDUserApi::checkQryStatus, true, timeout); };
+	// timeout in milliseconds, 0 mean infinite.
+	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
 public:
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();

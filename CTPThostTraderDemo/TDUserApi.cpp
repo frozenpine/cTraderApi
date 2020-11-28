@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <chrono>
 
 #include "TDUserApi.h"
 
@@ -32,12 +33,19 @@ bool TDUserApi::checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* r
 	return false;
 }
 
-void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect)
+void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect, int timeout)
 {
 	std::unique_lock<std::mutex> locker(g_lock);
+	bool timeout = false;
 
-	while ((this->*checkFn)() != expect) {
-		g_cond.wait(locker);
+	while ((this->*checkFn)() != expect && !timeout) {
+		if (timeout > 0) {
+			g_cond.wait_for(locker, std::chrono::milliseconds(timeout));
+			timeout = true;
+		}
+		else {
+			g_cond.wait(locker);
+		}
 	}
 }
 

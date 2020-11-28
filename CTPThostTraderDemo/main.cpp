@@ -29,7 +29,7 @@ int cmdExit(void* api, const std::vector<std::string>& args) {
 int cmdPostWait(void* api, const std::vector<std::string>& args) {
 	auto apiIns = ((TDUserApi*)api);
 
-	apiIns->WaitResponse();
+	apiIns->WaitResponse(100);
 
 	return 0;
 }
