@@ -110,6 +110,30 @@ int cmdOrderCancel(void* api, const std::vector<std::string>& args) {
 	return apiIns->ReqOrderAction(&ord);
 }
 
+bool getValueBool(std::string value) {
+	size_t len = value.length();
+
+	if (len < 1) {
+		return false;
+	}
+
+	mINI::INIStringUtil::toLower(value);
+
+	if (len == 1) {
+		return value.compare("y") == 0 || value.compare("t") == 0;
+	}
+
+	if (len == 3) {
+		return value.compare("yes") == 0;
+	}
+
+	if (len == 4) {
+		return value.compare("true") == 0;
+	}
+
+	return false;
+}
+
 int main(int argc, char* argv[]) {
 	printf("CTP API Version: %s impl by CPP.\n", TDUserApi::GetApiVersion());
 
@@ -130,6 +154,7 @@ int main(int argc, char* argv[]) {
 
 	const char* frontAddr = ini["front_info"]["Address"].c_str();
 	const char* frontPort = ini["front_info"]["Port"].c_str();
+	const bool isFens = getValueBool(ini["front_info"]["IsFense"]);
 
 	// 连接字符串格式：tcp://IP:PORT 的最大长度为 6+15+1+5+1
 	char conn[28] = {0};
@@ -168,7 +193,18 @@ int main(int argc, char* argv[]) {
 	api->CreateFtdcTraderApi(flowPath);
 	api->SubscribePrivateTopic(THOST_TERT_QUICK);
 	api->SubscribePublicTopic(THOST_TERT_QUICK);
-	api->RegisterFront(conn);
+	if (isFens) {
+		CThostFtdcFensUserInfoField fens = { 0 };
+		strncpy(fens.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		strncpy(fens.UserID, userID, sizeof(TThostFtdcUserIDType) - 1);
+		fens.LoginMode = THOST_FTDC_LM_Trade;
+
+		api->RegisterFensUserInfo(&fens);
+		api->RegisterNameServer(conn);
+	}
+	else {
+		api->RegisterFront(conn);
+	}
 	api->Init();
 
 	CThostFtdcReqAuthenticateField auth;

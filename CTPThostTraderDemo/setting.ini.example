@@ -7,26 +7,25 @@
 ; forwarded by devops
 ;Address = 172.30.1.187
 ;Port = 51223
-; 仿真行情
-Address = 180.166.6.242
-Port = 41213
-; 次席行情
+; 仿真交易
+;Address = 180.166.6.242
+;Port = 41205
+; 次席交易
 ;Address = 180.166.6.245
-;Port = 51213
+Address = 101.230.73.1
+Port = 51205
 
 ; 平台登录信息
 [login_info]
 ; 接入商代码
 BrokerID = 5100
+;BrokerID = 0121
 ; 交易用户代码
 UserID = 000006
+;UserID = 666666
 ; 密码
 Password = 123456
+;Password = 147258
 
-; 订阅信息
-[subscribe_info]
-; 订阅合约列表，逗号分隔合约名
-; InstrumentID = sc2109, sc2112, sc2203, sc2206, sc2209
-InstrumentID = ni2012
-; 是否为5档行情，yes/no，true/false，留空默认为false
-IsLevel2 = 
+AppID = 
+AuthCode = 
