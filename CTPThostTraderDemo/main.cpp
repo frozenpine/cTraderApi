@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
 	const char* frontAddr = ini["front_info"]["Address"].c_str();
 	const char* frontPort = ini["front_info"]["Port"].c_str();
-	const bool isFens = getValueBool(ini["front_info"]["IsFense"]);
+	const bool isFens = getValueBool(ini["front_info"]["IsFens"]);
 
 	// 连接字符串格式：tcp://IP:PORT 的最大长度为 6+15+1+5+1
 	char conn[28] = {0};
