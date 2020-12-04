@@ -36,9 +36,9 @@ bool TDUserApi::checkRspError(const char* msgTemplate, CThostFtdcRspInfoField* r
 void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect, int timeout)
 {
 	std::unique_lock<std::mutex> locker(g_lock);
-	bool timeout = false;
+	bool expired = false;
 
-	while ((this->*checkFn)() != expect && !timeout) {
+	while ((this->*checkFn)() != expect && !expired) {
 		if (timeout > 0) {
 			g_cond.wait_for(locker, std::chrono::milliseconds(timeout));
 			timeout = true;
