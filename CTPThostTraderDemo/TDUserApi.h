@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <chrono>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -25,13 +26,35 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+long long get_ms_ts() {
+	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()
+	);
+
+	return ms.count();
+}
+
+class TDUserApi;
+
 class InstrumentCache
 {
 public:
-	InstrumentCache() {};
+	InstrumentCache() {
+		marginRateQryIdx = 0;
+		commRateQryIdx = 0;
+
+		api = NULL;
+	};
+
+	InstrumentCache(TDUserApi* api) {
+		new (this)InstrumentCache();
+
+		this->api = api;
+	};
 private:
-	int marginRateQryIdx = 0;
-	int commRateQryIdx = 0;
+	TDUserApi* api;
+	int marginRateQryIdx;
+	int commRateQryIdx;
 	std::map<std::string, CThostFtdcInstrumentField*> instrumentDict;
 	std::map<std::string, CThostFtdcInstrumentMarginRateField*> marginRateDict;
 	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
@@ -42,7 +65,7 @@ public:
 	bool InsertMarginRate(CThostFtdcInstrumentMarginRateField* margin);
 	
 	void MoveToNextMarginRateQry() { marginRateQryIdx++; };
-	void QueryMarginRate(void* api, const char* brokerID, const char* investorID);
+	void QueryMarginRate(const char* brokerID, const char* investorID);
 	void QueryCommRate() {};
 	
 	std::vector<CThostFtdcInstrumentField*> ListInstrument(
@@ -61,6 +84,11 @@ enum class QueryFlag {
 	QryCommissionRate,
 };
 
+struct Query {
+	QueryFlag flag;
+	void* qry;
+};
+
 class QueryCache
 {
 public:
@@ -71,21 +99,40 @@ public:
 		qryCount = 0;
 
 		flag = QueryFlag::QryFinished;
+
+		api = NULL;
 	};
-	QueryCache(int freq) {
+	QueryCache(TDUserApi *api) {
 		new (this)QueryCache();
 
-		qryFreq = freq;
+		this->api = api;
+	};
+	QueryCache(TDUserApi* api, int freq) {
+		new (this)QueryCache(api);
+
+		SetQueryFreq(freq);
 	}
 private:
 	int inflightQry;
-	int lastQryTS;
+	long long lastQryTS;
 	int qryFreq;
 	int qryCount;
 
+	std::mutex g_lock;
+	std::condition_variable g_cond;
+
+	TDUserApi* api;
+
 	QueryFlag flag;
+
+	std::map<int, Query> qryCache;
 public:
-	bool CheckLimit();
+	void SetQueryFreq(int freq) { qryFreq = freq; }
+
+	int StartQuery(QueryFlag flag, void* qry);
+	void FinishQuery(int requestID);
+	
+	bool CheckStatus();
 	void CheckAndWait();
 };
 
@@ -101,6 +148,8 @@ public:
 		qryFinished = true;
 		responsed = true;
 	};
+
+	friend class QueryCache;
 protected:
 	~TDUserApi();
 private:
@@ -116,6 +165,7 @@ private:
 	std::atomic<int> maxOrderRef;
 
 	InstrumentCache instrumentCache;
+	QueryCache queryCache;
 	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
 	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
 	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
