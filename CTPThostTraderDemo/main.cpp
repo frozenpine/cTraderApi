@@ -26,6 +26,40 @@ int cmdExit(void* api, const std::vector<std::string>& args) {
 	return 0;
 }
 
+int cmdShow(void* api, const std::vector<std::string>& args) {
+	if (args.size() < 1) {
+		fprintf(stderr, "lack of args: {instrument|order|position} [args]\n");
+		return Command::CMDInvalidArgs;
+	}
+
+	std::string obj = args[0];
+	auto apiIns = ((TDUserApi*)api);
+
+	if (obj == "instrument") {
+		std::string ExchangeID = "";
+		std::string ProductID = "";
+		std::string InstrumentID = "";
+
+		for (int i = 1; i < args.size(); i++) {
+			/*args[i].*/
+		}
+
+		apiIns->PrintInstruments(ExchangeID, ProductID, InstrumentID);
+	}
+	else if (obj == "order") {
+
+	}
+	else if (obj == "position") {
+
+	}
+	else {
+		fprintf(stderr, "invalid show instance: %s", obj.c_str());
+		return Command::CMDInvalidArgs;
+	}
+
+	return 0;
+}
+
 int cmdPostWait(void* api, const std::vector<std::string>& args) {
 	auto apiIns = ((TDUserApi*)api);
 
@@ -172,6 +206,9 @@ int main(int argc, char* argv[]) {
 
 	CommandDefine versionCommand = { "version", "Print API's version info.", NULL, cmdVersion };
 	CommandDefine exitCommand = { "exit", "Release API & EXIT.", NULL, cmdExit };
+	CommandDefine showCommand = {
+		"show", "Show query info.",
+		"show {instrument|order|position} [args]", cmdShow };
 	CommandDefine orderNewCommand = { 
 		"new", "Make a limited price order.", 
 		"new {instrumentid} {direction} {price} {volume}", cmdOrderNew };
@@ -184,6 +221,7 @@ int main(int argc, char* argv[]) {
 
 	cli.AddCommand(&versionCommand);
 	cli.AddExitCommand(&exitCommand);
+	cli.AddCommand(&showCommand);
 	cli.AddCommand(&orderNewCommand);
 	cli.AddCommand(&orderModifyCommand);
 	cli.AddCommand(&orderCancelCommand);
@@ -224,11 +262,6 @@ int main(int argc, char* argv[]) {
 	api->ReqUserLogin(&login);
 	printf("Send login: %s, %s\n", brokerID, userID);
 
-	CThostFtdcQryInstrumentField qryIns;
-	memset(&qryIns, 0, sizeof(qryIns));
-	api->ReqQryInstrument(&qryIns);
-	printf("Quering instrument info.\n");
-
 	CThostFtdcQryInvestorPositionField qryPos;
 	memset(&qryPos, 0, sizeof(qryPos));
 	/* not mandatory */
@@ -244,6 +277,20 @@ int main(int argc, char* argv[]) {
 	// strncpy(qryOdr.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
 	api->ReqQryOrder(&qryOdr);
 	printf("Quering invesot's orders.\n");
+
+	CThostFtdcQryInstrumentField qryIns;
+	memset(&qryIns, 0, sizeof(qryIns));
+	api->ReqQryInstrument(&qryIns);
+	printf("Quering instrument info.\n");
+
+	/*CThostFtdcQryInstrumentMarginRateField qryMargin;
+	memset(&qryMargin, 0, sizeof(qryMargin));
+	strncpy(qryMargin.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	strncpy(qryMargin.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
+	strncpy(qryMargin.InstrumentID, "ag2012", sizeof(TThostFtdcInstrumentIDType) - 1);
+	qryMargin.HedgeFlag = THOST_FTDC_HF_Speculation;
+	api->ReqQryInstrumentMarginRate(&qryMargin);
+	printf("Quering investor's margin rate.\n");*/
 
 	api->WaitInitialData();
 

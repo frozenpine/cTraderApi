@@ -49,6 +49,18 @@ void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect, int timeout
 	}
 }
 
+void TDUserApi::PrintInstruments(std::string ExchangeID, std::string ProductID, std::string InstrumentID)
+{
+	printf("ExchangeID, ProductID, InstrumentID, PriceTick, VolumeMultiple, UnderlyingIns, StrikePrice\n");
+
+	for (auto ins : instrumentCache.ListInstrument(ExchangeID, ProductID, InstrumentID)) {
+		printf("%s, %s, %s, %.2lf, %d, %s, %.2lf\n", 
+			ins->ExchangeID, ins->ProductID, ins->InstrumentID, 
+			ins->PriceTick, ins->VolumeMultiple,
+			ins->UnderlyingInstrID, ins->StrikePrice);
+	}
+}
+
 void TDUserApi::OnFrontConnected()
 {
 	printf("Front connected.\n");
@@ -144,8 +156,11 @@ void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoFie
 	}
 
 	if (NULL != pOrder) {
-		orderDictByRef.insert_or_assign(pOrder->OrderRef, pOrder);
-		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, pOrder);
+		CThostFtdcOrderField* ord = new(CThostFtdcOrderField);
+		memcpy(ord, pOrder, sizeof(CThostFtdcOrderField));
+
+		orderDictByRef.insert_or_assign(pOrder->OrderRef, ord);
+		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, ord);
 
 		printf(
 			"Symbol[%s.%s] %s %s: Direction[%c] Offset[%s] %d@%.2f\n",
@@ -176,7 +191,10 @@ void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInves
 		symbol.append(".");
 		symbol.append(pInvestorPosition->InstrumentID);
 
-		positionCache.insert_or_assign(symbol, pInvestorPosition);
+		CThostFtdcInvestorPositionField* pos = new(CThostFtdcInvestorPositionField);
+		memcpy(pos, pInvestorPosition, sizeof(CThostFtdcInvestorPositionField));
+
+		positionCache.insert_or_assign(symbol, pos);
 
 		printf(
 			"Symbol[%s.%s]: Direction[%c] YdPos[%d] Pos[%d]\n", 
@@ -192,6 +210,37 @@ void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInves
 	}
 }
 
+void TDUserApi::OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Query instrument margin rate failed[%d]: %s\n", pRspInfo)) {
+		setFlag(&qryFinished, true);
+
+		return;
+	}
+
+	if (NULL != pInstrumentMarginRate) {
+		printf("Instrument[%s.%s] margin rate: "
+			"LongRatioByMoney[%.2lf] LongRatioByVolume[%.2lf] "
+			"ShortRatioByMoney[%.2lf] ShortRatioByVolume[%.2lf]\n",
+			pInstrumentMarginRate->ExchangeID, pInstrumentMarginRate->InstrumentID,
+			pInstrumentMarginRate->LongMarginRatioByMoney, pInstrumentMarginRate->LongMarginRatioByVolume, 
+			pInstrumentMarginRate->ShortMarginRatioByMoney, pInstrumentMarginRate->ShortMarginRatioByVolume
+		);
+
+		instrumentCache.InsertMarginRate(pInstrumentMarginRate);
+
+		instrumentCache.MoveToNextMarginRateQry();
+
+		instrumentCache.QueryMarginRate(this, User.BrokerID, User.UserID);
+	}
+
+	/*if (bIsLast) {
+		printf("Query instrument[%s] margin rate finished.\n", pInstrumentMarginRate->InstrumentID);
+
+		setFlag(&qryFinished, true);
+	}*/
+}
+
 void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query instrument failed[%d]: %s\n", pRspInfo)) {
@@ -201,19 +250,23 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 	}
 
 	if (NULL != pInstrument) { 
-		std::string symbol;
-		symbol.append(pInstrument->ExchangeID);
-		symbol.append(".");
-		symbol.append(pInstrument->InstrumentID);
-
-		symbolCache.insert_or_assign(symbol, pInstrument);
+		CThostFtdcInstrumentField* ins = new(CThostFtdcInstrumentField);
+		memcpy(ins, pInstrument, sizeof(CThostFtdcInstrumentField));
+		instrumentCache.InsertInstrument(ins);
 	}
 
 	if (bIsLast) {
 		printf("Query instrument info finished.\n");
 
 		setFlag(&qryFinished, true);
+
+		instrumentCache.QueryMarginRate(this, User.BrokerID, User.UserID);
 	}
+}
+
+void TDUserApi::OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	fprintf(stderr, "Request[%d] responsed Error[%d]: %s\n", nRequestID, pRspInfo->ErrorID, pRspInfo->ErrorMsg);
 }
 
 void TDUserApi::OnRtnOrder(CThostFtdcOrderField* pOrder)
@@ -475,7 +528,7 @@ int TDUserApi::ReqQryTradingCode(CThostFtdcQryTradingCodeField* pQryTradingCode)
 int TDUserApi::ReqQryInstrumentMarginRate(CThostFtdcQryInstrumentMarginRateField* pQryInstrumentMarginRate)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
+	//waitUntil(&TDUserApi::checkQryStatus, true);
 
 	setFlag(&qryFinished, false);
 
@@ -590,4 +643,74 @@ int TDUserApi::ReqQryExchangeMarginRateAdjust(CThostFtdcQryExchangeMarginRateAdj
 	setFlag(&qryFinished, false);
 
 	return pApi->ReqQryExchangeMarginRateAdjust(pQryExchangeMarginRateAdjust, ++nRequestID);
+}
+
+bool InstrumentCache::InsertInstrument(CThostFtdcInstrumentField* ins)
+{
+	if (NULL == ins) { return false; }
+
+	instrumentDict.insert_or_assign(ins->InstrumentID, ins);
+	instrumentList.push_back(ins);
+
+	return true;
+}
+
+bool InstrumentCache::InsertMarginRate(CThostFtdcInstrumentMarginRateField* margin)
+{
+	if (NULL == margin) {
+		return false;
+	}
+
+	marginRateDict.insert_or_assign(margin->InstrumentID, margin);
+
+	return true;
+}
+
+void InstrumentCache::QueryMarginRate(void* api, const char* brokerID, const char* investorID)
+{
+	if (marginRateQryIdx >= instrumentList.size()) {
+		return;
+	}
+
+	std::string instrumentID = instrumentList[marginRateQryIdx]->InstrumentID;
+
+	if (marginRateDict.find(instrumentID) == marginRateDict.end()) {
+		printf("Quering instrument[%s] margin rate.\n", instrumentID.c_str());
+
+		CThostFtdcQryInstrumentMarginRateField qryMargin;
+		memset(&qryMargin, 0, sizeof(qryMargin));
+		strncpy(qryMargin.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		strncpy(qryMargin.InvestorID, investorID, sizeof(TThostFtdcInvestorIDType) - 1);
+		strncpy(qryMargin.InstrumentID, instrumentID.c_str(), sizeof(TThostFtdcInstrumentIDType) - 1);
+		qryMargin.HedgeFlag = THOST_FTDC_HF_Speculation;
+		
+		((TDUserApi*)api)->ReqQryInstrumentMarginRate(&qryMargin);
+	}
+	else {
+		MoveToNextMarginRateQry();
+		QueryMarginRate(api, brokerID, investorID);
+	}
+}
+
+std::vector<CThostFtdcInstrumentField*> InstrumentCache::ListInstrument(std::string ExchangeID, std::string ProductID, std::string InstrumentID)
+{
+	std::vector<CThostFtdcInstrumentField*> result;
+
+	if (InstrumentID != "") {
+		auto ins = instrumentDict.at(InstrumentID);
+		result.push_back(ins);
+
+		return result;
+	}
+	
+	for (auto ins : instrumentList) {
+		if ((ExchangeID != "" && ins->ExchangeID != ExchangeID) ||
+			(ProductID != "" && ins->ProductID != ProductID)) {
+			continue;
+		}
+
+		result.push_back(ins);
+	}
+
+	return result;
 }

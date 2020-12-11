@@ -3,6 +3,7 @@
 #include <atomic>
 #include <mutex>
 #include <map>
+#include <vector>
 #include <string>
 
 #ifdef _WIN32
@@ -23,6 +24,70 @@
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+
+class InstrumentCache
+{
+public:
+	InstrumentCache() {};
+private:
+	int marginRateQryIdx = 0;
+	int commRateQryIdx = 0;
+	std::map<std::string, CThostFtdcInstrumentField*> instrumentDict;
+	std::map<std::string, CThostFtdcInstrumentMarginRateField*> marginRateDict;
+	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
+	std::vector< CThostFtdcInstrumentField*> instrumentList;
+
+public:
+	bool InsertInstrument(CThostFtdcInstrumentField* ins);
+	bool InsertMarginRate(CThostFtdcInstrumentMarginRateField* margin);
+	
+	void MoveToNextMarginRateQry() { marginRateQryIdx++; };
+	void QueryMarginRate(void* api, const char* brokerID, const char* investorID);
+	void QueryCommRate() {};
+	
+	std::vector<CThostFtdcInstrumentField*> ListInstrument(
+		std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = ""
+	);
+};
+
+enum class QueryFlag {
+	QryFinished = 0,
+	QryAccount,
+	QryOrder,
+	QryPosition,
+	QryExecution,
+	QryInstrument,
+	QryMarginRate,
+	QryCommissionRate,
+};
+
+class QueryCache
+{
+public:
+	QueryCache() {
+		inflightQry = 1;
+		lastQryTS = 0;
+		qryFreq = 3;
+		qryCount = 0;
+
+		flag = QueryFlag::QryFinished;
+	};
+	QueryCache(int freq) {
+		new (this)QueryCache();
+
+		qryFreq = freq;
+	}
+private:
+	int inflightQry;
+	int lastQryTS;
+	int qryFreq;
+	int qryCount;
+
+	QueryFlag flag;
+public:
+	bool CheckLimit();
+	void CheckAndWait();
+};
 
 class TDUserApi : public CThostFtdcTraderSpi
 {
@@ -50,7 +115,7 @@ private:
 	bool responsed;
 	std::atomic<int> maxOrderRef;
 
-	std::map<std::string, CThostFtdcInstrumentField*> symbolCache;
+	InstrumentCache instrumentCache;
 	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
 	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
 	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
@@ -73,6 +138,7 @@ public:
 	void WaitInitialData(int timeout = 0) { waitUntil(&TDUserApi::checkQryStatus, true, timeout); };
 	// timeout in milliseconds, 0 mean infinite.
 	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
+	void PrintInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
 public:
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();
@@ -184,7 +250,7 @@ public:
 	virtual void OnRspQryTradingCode(CThostFtdcTradingCodeField* pTradingCode, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///请求查询合约保证金率响应
-	virtual void OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询合约手续费率响应
 	virtual void OnRspQryInstrumentCommissionRate(CThostFtdcInstrumentCommissionRateField* pInstrumentCommissionRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
@@ -298,7 +364,7 @@ public:
 	virtual void OnRspQryAccountregister(CThostFtdcAccountregisterField* pAccountregister, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///错误应答
-	virtual void OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///报单通知
 	virtual void OnRtnOrder(CThostFtdcOrderField* pOrder);
