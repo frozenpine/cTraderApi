@@ -147,6 +147,9 @@ public:
 		login = false;
 		qryFinished = true;
 		responsed = true;
+
+		instrumentCache = InstrumentCache(this);
+		queryCache = QueryCache(this);
 	};
 
 	friend class QueryCache;
