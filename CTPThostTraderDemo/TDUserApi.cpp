@@ -714,7 +714,7 @@ std::vector<CThostFtdcInstrumentField*> InstrumentCache::ListInstrument(std::str
 	return result;
 }
 
-int QueryCache::StartQuery(QueryFlag flag, void* qry)
+void QueryCache::StartQuery(QueryFlag flag, void* qry)
 {
 	CheckAndWait();
 

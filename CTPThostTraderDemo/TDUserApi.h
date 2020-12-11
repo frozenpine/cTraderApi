@@ -129,7 +129,7 @@ private:
 public:
 	void SetQueryFreq(int freq) { qryFreq = freq; }
 
-	int StartQuery(QueryFlag flag, void* qry);
+	void StartQuery(QueryFlag flag, void* qry);
 	void FinishQuery(int requestID);
 	
 	bool CheckStatus();
@@ -147,9 +147,6 @@ public:
 		login = false;
 		qryFinished = true;
 		responsed = true;
-
-		instrumentCache = InstrumentCache(this);
-		queryCache = QueryCache(this);
 	};
 
 	friend class QueryCache;
@@ -167,8 +164,8 @@ private:
 	bool responsed;
 	std::atomic<int> maxOrderRef;
 
-	InstrumentCache instrumentCache;
-	QueryCache queryCache;
+	InstrumentCache instrumentCache = InstrumentCache(this);
+	QueryCache queryCache = QueryCache(this);
 	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
 	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
 	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
