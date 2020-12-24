@@ -283,14 +283,7 @@ int main(int argc, char* argv[]) {
 	api->ReqQryInstrument(&qryIns);
 	printf("Quering instrument info.\n");
 
-	/*CThostFtdcQryInstrumentMarginRateField qryMargin;
-	memset(&qryMargin, 0, sizeof(qryMargin));
-	strncpy(qryMargin.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-	strncpy(qryMargin.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
-	strncpy(qryMargin.InstrumentID, "ag2012", sizeof(TThostFtdcInstrumentIDType) - 1);
-	qryMargin.HedgeFlag = THOST_FTDC_HF_Speculation;
-	api->ReqQryInstrumentMarginRate(&qryMargin);
-	printf("Quering investor's margin rate.\n");*/
+	api->QueryMarginRate(brokerID, userID);
 
 	api->WaitInitialData();
 

@@ -140,6 +140,11 @@ void TDUserApi::OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostF
 	setFlag(&responsed, true);
 }
 
+void TDUserApi::QueryMarginRate(const char* brokerID, const char* investorID)
+{
+	instrumentCache->QueryMarginRate(brokerID, investorID);
+}
+
 void TDUserApi::OnRspOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	checkRspError("Request order action failed[%d]: %s\n", pRspInfo);
@@ -173,14 +178,14 @@ void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoFie
 	if (bIsLast) {
 		printf("Query order finished.\n");
 
-		setFlag(&qryFinished, true);
+		queryCache->FinishQuery(nRequestID);
 	}
 }
 
 void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInvestorPosition, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query investor's position failed[%d]: %s\n", pRspInfo)) {
-		setFlag(&qryFinished, true);
+		queryCache->FinishQuery(nRequestID);
 
 		return;
 	}
@@ -206,14 +211,14 @@ void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInves
 	if (bIsLast) {
 		printf("Query investor's position finished.\n");
 
-		setFlag(&qryFinished, true);
+		queryCache->FinishQuery(nRequestID);
 	}
 }
 
 void TDUserApi::OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query instrument margin rate failed[%d]: %s\n", pRspInfo)) {
-		setFlag(&qryFinished, true);
+		queryCache->FinishQuery(nRequestID);
 
 		return;
 	}
@@ -235,18 +240,12 @@ void TDUserApi::OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField
 
 		instrumentCache->QueryMarginRate(User.BrokerID, User.UserID);
 	}
-
-	/*if (bIsLast) {
-		printf("Query instrument[%s] margin rate finished.\n", pInstrumentMarginRate->InstrumentID);
-
-		setFlag(&qryFinished, true);
-	}*/
 }
 
 void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query instrument failed[%d]: %s\n", pRspInfo)) {
-		setFlag(&qryFinished, true);
+		queryCache->FinishQuery(nRequestID);
 
 		return;
 	}
@@ -260,9 +259,9 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 	if (bIsLast) {
 		printf("Query instrument info finished.\n");
 
-		setFlag(&qryFinished, true);
+		queryCache->FinishQuery(nRequestID);
 
-		instrumentCache->QueryMarginRate(User.BrokerID, User.UserID);
+		// instrumentCache->QueryMarginRate(User.BrokerID, User.UserID);
 	}
 }
 

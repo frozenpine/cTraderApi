@@ -85,7 +85,6 @@ class QueryCache
 {
 public:
 	QueryCache() {
-		inflightQry = 0;
 		lastQryTS = 0;
 		qryFreq = 3;
 		qryCount = 0;
@@ -105,7 +104,6 @@ public:
 		this->qryFreq = qryFreq;
 	}
 private:
-	int inflightQry;
 	long long lastQryTS;
 	int qryFreq;
 	int qryCount;
@@ -185,6 +183,9 @@ public:
 	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
 	void PrintInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
 public:
+	// 按合约查询回报顺序依次查询合约保证金率
+	void QueryMarginRate(const char* brokerID, const char* investorID);
+	
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();
 
