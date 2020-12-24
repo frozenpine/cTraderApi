@@ -694,6 +694,8 @@ bool InstrumentCache::InsertCommRate(CThostFtdcInstrumentCommissionRateField* co
 
 void InstrumentCache::QueryNextMarginRate(const char* brokerID, const char* investorID)
 {
+	assert(api != NULL);
+
 	if (marginRateQryIdx >= instrumentList.size()) {
 		api->queryAllMarginRate = false;
 		marginRateQryIdx = 0;
@@ -720,6 +722,8 @@ void InstrumentCache::QueryNextMarginRate(const char* brokerID, const char* inve
 
 void InstrumentCache::QueryNextCommRate(const char* brokerID, const char* investorID)
 {
+	assert(api != NULL);
+
 	if (commRateQryIdx >= instrumentList.size()) {
 		api->queryAllCommRate = false;
 		commRateQryIdx = 0;
@@ -768,6 +772,8 @@ std::vector<CThostFtdcInstrumentField*> InstrumentCache::GetInstrumentList(std::
 
 int QueryCache::StartQuery(QueryFlag flag, void* qry)
 {
+	assert(api != NULL);
+
 	CheckAndWait();
 
 	lastQryTS = get_ms_ts();
