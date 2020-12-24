@@ -136,6 +136,7 @@ public:
 		authenticated = false;
 		login = false;
 		qryFinished = true;
+		queryAllMargin = false;
 		responsed = true;
 
 		instrumentCache = new InstrumentCache(this);
@@ -155,6 +156,7 @@ private:
 	bool login;
 	bool qryFinished;
 	bool responsed;
+	bool queryAllMargin;
 	std::atomic<int> maxOrderRef;
 
 	InstrumentCache* instrumentCache;
@@ -183,8 +185,10 @@ public:
 	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
 	void PrintInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
 public:
-	// 按合约查询回报顺序依次查询合约保证金率
-	void QueryMarginRate(const char* brokerID, const char* investorID);
+	// 按合约查询回报顺序依次查询所有合约保证金率
+	void QueryMarginRateAll(const char* brokerID, const char* investorID);
+	// 标记所有合约的保证金率查询结束
+	void QueryMarginRateAllFinished() { queryAllMargin = false; }
 	
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();

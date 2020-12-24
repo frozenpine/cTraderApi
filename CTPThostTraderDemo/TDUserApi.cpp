@@ -140,8 +140,9 @@ void TDUserApi::OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostF
 	setFlag(&responsed, true);
 }
 
-void TDUserApi::QueryMarginRate(const char* brokerID, const char* investorID)
+void TDUserApi::QueryMarginRateAll(const char* brokerID, const char* investorID)
 {
+	queryAllMargin = true;
 	instrumentCache->QueryMarginRate(brokerID, investorID);
 }
 
@@ -236,9 +237,11 @@ void TDUserApi::OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField
 
 		instrumentCache->InsertMarginRate(pInstrumentMarginRate);
 
-		instrumentCache->MoveToNextMarginRateQry();
+		if (queryAllMargin) {
+			instrumentCache->MoveToNextMarginRateQry();
 
-		instrumentCache->QueryMarginRate(User.BrokerID, User.UserID);
+			instrumentCache->QueryMarginRate(User.BrokerID, User.UserID);
+		}
 	}
 }
 
@@ -658,6 +661,8 @@ bool InstrumentCache::InsertMarginRate(CThostFtdcInstrumentMarginRateField* marg
 void InstrumentCache::QueryMarginRate(const char* brokerID, const char* investorID)
 {
 	if (marginRateQryIdx >= instrumentList.size()) {
+		api->QueryMarginRateAllFinished();
+		marginRateQryIdx = 0;
 		return;
 	}
 

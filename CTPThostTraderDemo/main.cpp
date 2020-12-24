@@ -283,7 +283,7 @@ int main(int argc, char* argv[]) {
 	api->ReqQryInstrument(&qryIns);
 	printf("Quering instrument info.\n");
 
-	api->QueryMarginRate(brokerID, userID);
+	api->QueryMarginRateAll(brokerID, userID);
 
 	api->WaitInitialData();
 
