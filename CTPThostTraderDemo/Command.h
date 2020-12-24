@@ -1,11 +1,10 @@
 #pragma once
+
 #include <map>
 #include <vector>
 #include <iomanip>
 #include <string>
 #include <thread>
-
-#include "TDUserApi.h"
 
 typedef int (*CmdHandler)(void* api, const std::vector<std::string>&);
 

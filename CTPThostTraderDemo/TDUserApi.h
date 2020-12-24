@@ -1,11 +1,11 @@
 #pragma once
+
 #include <string.h>
 #include <atomic>
 #include <mutex>
 #include <map>
 #include <vector>
 #include <string>
-#include <chrono>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -26,29 +26,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-long long get_ms_ts() {
-	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-		std::chrono::system_clock::now().time_since_epoch()
-	);
-
-	return ms.count();
-}
+long long get_ms_ts();
 
 class TDUserApi;
 
 class InstrumentCache
 {
 public:
-	InstrumentCache() {
-		marginRateQryIdx = 0;
-		commRateQryIdx = 0;
-
-		api = NULL;
-	};
-
-	InstrumentCache(TDUserApi* api) {
-		new (this)InstrumentCache();
-
+	InstrumentCache(TDUserApi* api): marginRateQryIdx(0), commRateQryIdx(0) {
 		this->api = api;
 	};
 private:
@@ -58,7 +43,7 @@ private:
 	std::map<std::string, CThostFtdcInstrumentField*> instrumentDict;
 	std::map<std::string, CThostFtdcInstrumentMarginRateField*> marginRateDict;
 	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
-	std::vector< CThostFtdcInstrumentField*> instrumentList;
+	std::vector<CThostFtdcInstrumentField*> instrumentList;
 
 public:
 	bool InsertInstrument(CThostFtdcInstrumentField* ins);
@@ -73,7 +58,7 @@ public:
 	);
 };
 
-enum class QueryFlag {
+enum QueryFlag {
 	QryFinished = 0,
 	QryAccount,
 	QryOrder,
@@ -92,26 +77,9 @@ struct Query {
 class QueryCache
 {
 public:
-	QueryCache() {
-		inflightQry = 1;
-		lastQryTS = 0;
-		qryFreq = 3;
-		qryCount = 0;
-
-		flag = QueryFlag::QryFinished;
-
-		api = NULL;
-	};
-	QueryCache(TDUserApi *api) {
-		new (this)QueryCache();
-
+	QueryCache(TDUserApi *api): inflightQry(1), lastQryTS(0), qryFreq(3), qryCount(0), flag(QueryFlag::QryFinished) {
 		this->api = api;
 	};
-	QueryCache(TDUserApi* api, int freq) {
-		new (this)QueryCache(api);
-
-		SetQueryFreq(freq);
-	}
 private:
 	int inflightQry;
 	long long lastQryTS;
@@ -129,7 +97,7 @@ private:
 public:
 	void SetQueryFreq(int freq) { qryFreq = freq; }
 
-	void StartQuery(QueryFlag flag, void* qry);
+	int StartQuery(QueryFlag flag, void* qry);
 	void FinishQuery(int requestID);
 	
 	bool CheckStatus();
@@ -147,6 +115,9 @@ public:
 		login = false;
 		qryFinished = true;
 		responsed = true;
+
+		instrumentCache = new InstrumentCache(this);
+		queryCache = new QueryCache(this);
 	};
 
 	friend class QueryCache;
@@ -164,8 +135,8 @@ private:
 	bool responsed;
 	std::atomic<int> maxOrderRef;
 
-	InstrumentCache instrumentCache = InstrumentCache(this);
-	QueryCache queryCache = QueryCache(this);
+	InstrumentCache* instrumentCache;
+	QueryCache* queryCache;
 	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
 	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
 	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
@@ -886,4 +857,3 @@ public:
 	///期货发起查询银行余额请求
 	int ReqQueryBankAccountMoneyByFuture(CThostFtdcReqQueryAccountField* pReqQueryAccount) {};
 };
-
