@@ -30,40 +30,6 @@ long long get_ms_ts();
 
 class TDUserApi;
 
-class InstrumentCache
-{
-public:
-	InstrumentCache() {
-		marginRateQryIdx = 0;
-		commRateQryIdx = 0;
-		api = NULL;
-	};
-	InstrumentCache(TDUserApi* api) {
-		new (this)InstrumentCache();
-
-		this->api = api;
-	};
-private:
-	TDUserApi* api;
-	int marginRateQryIdx;
-	int commRateQryIdx;
-	std::map<std::string, CThostFtdcInstrumentField*> instrumentDict;
-	std::map<std::string, CThostFtdcInstrumentMarginRateField*> marginRateDict;
-	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
-	std::vector<CThostFtdcInstrumentField*> instrumentList;
-
-public:
-	bool InsertInstrument(CThostFtdcInstrumentField* ins);
-	bool InsertMarginRate(CThostFtdcInstrumentMarginRateField* margin);
-	
-	void QueryNextMarginRate(const char* brokerID, const char* investorID);
-	void QueryNextCommRate() {};
-	
-	std::vector<CThostFtdcInstrumentField*> GetInstrumentList(
-		std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = ""
-	);
-};
-
 enum class QueryFlag {
 	QryFinished = 0,
 	QryAccount,
@@ -125,6 +91,41 @@ public:
 	void CheckAndWait();
 };
 
+class InstrumentCache
+{
+public:
+	InstrumentCache() {
+		marginRateQryIdx = 0;
+		commRateQryIdx = 0;
+		api = NULL;
+	};
+	InstrumentCache(TDUserApi* api) {
+		new (this)InstrumentCache();
+
+		this->api = api;
+	};
+private:
+	TDUserApi* api;
+	int marginRateQryIdx;
+	int commRateQryIdx;
+	std::map<std::string, CThostFtdcInstrumentField*> instrumentDict;
+	std::map<std::string, CThostFtdcInstrumentMarginRateField*> marginRateDict;
+	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
+	std::vector<CThostFtdcInstrumentField*> instrumentList;
+
+public:
+	bool InsertInstrument(CThostFtdcInstrumentField* ins);
+	bool InsertMarginRate(CThostFtdcInstrumentMarginRateField* marginRate);
+	bool InsertCommRate(CThostFtdcInstrumentCommissionRateField* commRate);
+
+	void QueryNextMarginRate(const char* brokerID, const char* investorID);
+	void QueryNextCommRate(const char* brokerID, const char* investorID);
+
+	std::vector<CThostFtdcInstrumentField*> GetInstrumentList(
+		std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = ""
+	);
+};
+
 class TDUserApi : public CThostFtdcTraderSpi
 {
 public:
@@ -135,7 +136,8 @@ public:
 		authenticated = false;
 		login = false;
 		qryFinished = true;
-		queryAllMargin = false;
+		queryAllMarginRate = false;
+		queryAllCommRate = false;
 		responsed = true;
 
 		instrumentCache = new InstrumentCache(this);
@@ -143,6 +145,7 @@ public:
 	};
 
 	friend class QueryCache;
+	friend class InstrumentCache;
 protected:
 	~TDUserApi();
 private:
@@ -155,7 +158,8 @@ private:
 	bool login;
 	bool qryFinished;
 	bool responsed;
-	bool queryAllMargin;
+	bool queryAllMarginRate;
+	bool queryAllCommRate;
 	std::atomic<int> maxOrderRef;
 
 	InstrumentCache* instrumentCache;
@@ -186,8 +190,10 @@ public:
 public:
 	// 按合约查询回报顺序依次查询所有合约保证金率
 	void QueryMarginRateAll(const char* brokerID, const char* investorID);
-	// 标记所有合约的保证金率查询结束
-	void QueryMarginRateAllFinished() { queryAllMargin = false; }
+	// 按合约查询回报顺序依次查询所有合约手续费率
+	void QueryCommRateAll(const char* brokerID, const char* investorID);
+
+	// TODO: 修改所有查询调用为：通过QueryCache建立查询缓存
 	
 	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();
@@ -302,7 +308,7 @@ public:
 	virtual void OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询合约手续费率响应
-	virtual void OnRspQryInstrumentCommissionRate(CThostFtdcInstrumentCommissionRateField* pInstrumentCommissionRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspQryInstrumentCommissionRate(CThostFtdcInstrumentCommissionRateField* pInstrumentCommissionRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询交易所响应
 	virtual void OnRspQryExchange(CThostFtdcExchangeField* pExchange, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};

@@ -135,8 +135,18 @@ void TDUserApi::OnRspOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostF
 
 void TDUserApi::QueryMarginRateAll(const char* brokerID, const char* investorID)
 {
-	queryAllMargin = true;
+	waitUntil(&TDUserApi::checkUserLogin, true);
+
+	queryAllMarginRate = true;
 	instrumentCache->QueryNextMarginRate(brokerID, investorID);
+}
+
+void TDUserApi::QueryCommRateAll(const char* brokerID, const char* investorID)
+{
+	waitUntil(&TDUserApi::checkUserLogin, true);
+
+	queryAllCommRate = true;
+	instrumentCache->QueryNextCommRate(brokerID, investorID);
 }
 
 void TDUserApi::OnRspOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
@@ -176,7 +186,9 @@ void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoFie
 	}
 }
 
-void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInvestorPosition, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+void TDUserApi::OnRspQryInvestorPosition(
+	CThostFtdcInvestorPositionField* pInvestorPosition, 
+	CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query investor's position failed[%d]: %s\n", pRspInfo)) {
 		queryCache->FinishQuery(nRequestID);
@@ -209,7 +221,9 @@ void TDUserApi::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField* pInves
 	}
 }
 
-void TDUserApi::OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+void TDUserApi::OnRspQryInstrumentMarginRate(
+	CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, 
+	CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query instrument margin rate failed[%d]: %s\n", pRspInfo)) {
 		queryCache->FinishQuery(nRequestID);
@@ -218,20 +232,41 @@ void TDUserApi::OnRspQryInstrumentMarginRate(CThostFtdcInstrumentMarginRateField
 	}
 
 	if (NULL != pInstrumentMarginRate) {
-		printf("Instrument[%s.%s] margin rate: "
+		/*printf("Instrument[%s.%s] margin rate: "
 			"LongRatioByMoney[%.2lf] LongRatioByVolume[%.2lf] "
 			"ShortRatioByMoney[%.2lf] ShortRatioByVolume[%.2lf]\n",
 			pInstrumentMarginRate->ExchangeID, pInstrumentMarginRate->InstrumentID,
 			pInstrumentMarginRate->LongMarginRatioByMoney, pInstrumentMarginRate->LongMarginRatioByVolume, 
 			pInstrumentMarginRate->ShortMarginRatioByMoney, pInstrumentMarginRate->ShortMarginRatioByVolume
-		);
+		);*/
 
 		queryCache->FinishQuery(nRequestID);
 
 		instrumentCache->InsertMarginRate(pInstrumentMarginRate);
 
-		if (queryAllMargin) {
+		if (queryAllMarginRate) {
 			instrumentCache->QueryNextMarginRate(User.BrokerID, User.UserID);
+		}
+	}
+}
+
+void TDUserApi::OnRspQryInstrumentCommissionRate(
+	CThostFtdcInstrumentCommissionRateField* pInstrumentCommissionRate, 
+	CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Query instrument comm rate failed[%d]: %s\n", pRspInfo)) {
+		queryCache->FinishQuery(nRequestID);
+
+		return;
+	}
+
+	if (NULL != pInstrumentCommissionRate) {
+		queryCache->FinishQuery(nRequestID);
+
+		instrumentCache->InsertCommRate(pInstrumentCommissionRate);
+
+		if (queryAllCommRate) {
+			instrumentCache->QueryNextCommRate(User.BrokerID, User.UserID);
 		}
 	}
 }
@@ -524,11 +559,8 @@ int TDUserApi::ReqQryInstrumentMarginRate(CThostFtdcQryInstrumentMarginRateField
 int TDUserApi::ReqQryInstrumentCommissionRate(CThostFtdcQryInstrumentCommissionRateField* pQryInstrumentCommissionRate)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryInstrumentCommissionRate(pQryInstrumentCommissionRate, ++nRequestID);
+	return queryCache->StartQuery(QueryFlag::QryCommissionRate, pQryInstrumentCommissionRate);
 }
 
 int TDUserApi::ReqQryExchange(CThostFtdcQryExchangeField* pQryExchange)
@@ -638,13 +670,24 @@ bool InstrumentCache::InsertInstrument(CThostFtdcInstrumentField* ins)
 	return true;
 }
 
-bool InstrumentCache::InsertMarginRate(CThostFtdcInstrumentMarginRateField* margin)
+bool InstrumentCache::InsertMarginRate(CThostFtdcInstrumentMarginRateField* marginRate)
 {
-	if (NULL == margin) {
+	if (NULL == marginRate) {
 		return false;
 	}
 
-	marginRateDict.insert_or_assign(margin->InstrumentID, margin);
+	marginRateDict.insert_or_assign(marginRate->InstrumentID, marginRate);
+
+	return true;
+}
+
+bool InstrumentCache::InsertCommRate(CThostFtdcInstrumentCommissionRateField* commRate)
+{
+	if (NULL == commRate) {
+		return false;
+	}
+
+	commRateDict.insert_or_assign(commRate->InstrumentID, commRate);
 
 	return true;
 }
@@ -652,27 +695,51 @@ bool InstrumentCache::InsertMarginRate(CThostFtdcInstrumentMarginRateField* marg
 void InstrumentCache::QueryNextMarginRate(const char* brokerID, const char* investorID)
 {
 	if (marginRateQryIdx >= instrumentList.size()) {
-		api->QueryMarginRateAllFinished();
+		api->queryAllMarginRate = false;
 		marginRateQryIdx = 0;
 		return;
 	}
 
-	std::string instrumentID = instrumentList[marginRateQryIdx++]->InstrumentID;
+	char* instrumentID = instrumentList[marginRateQryIdx++]->InstrumentID;
 
 	if (marginRateDict.find(instrumentID) == marginRateDict.end()) {
-		printf("Quering instrument[%s] margin rate.\n", instrumentID.c_str());
+		printf("Quering instrument[%s] margin rate.\n", instrumentID);
 
-		CThostFtdcQryInstrumentMarginRateField qryMargin;
-		memset(&qryMargin, 0, sizeof(qryMargin));
+		CThostFtdcQryInstrumentMarginRateField qryMargin = {0};
 		strncpy(qryMargin.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
 		strncpy(qryMargin.InvestorID, investorID, sizeof(TThostFtdcInvestorIDType) - 1);
-		strncpy(qryMargin.InstrumentID, instrumentID.c_str(), sizeof(TThostFtdcInstrumentIDType) - 1);
+		strncpy(qryMargin.InstrumentID, instrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
 		qryMargin.HedgeFlag = THOST_FTDC_HF_Speculation;
 		
 		api->ReqQryInstrumentMarginRate(&qryMargin);
 	}
 	else {
 		QueryNextMarginRate(brokerID, investorID);
+	}
+}
+
+void InstrumentCache::QueryNextCommRate(const char* brokerID, const char* investorID)
+{
+	if (commRateQryIdx >= instrumentList.size()) {
+		api->queryAllCommRate = false;
+		commRateQryIdx = 0;
+		return;
+	}
+
+	char* instrumentID = instrumentList[commRateQryIdx++]->InstrumentID;
+
+	if (commRateDict.find(instrumentID) == commRateDict.end()) {
+		printf("Quering instrument[%s] comm rate.\n", instrumentID);
+
+		CThostFtdcQryInstrumentCommissionRateField qryComm = {0};
+		strncpy(qryComm.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		strncpy(qryComm.InvestorID, investorID, sizeof(TThostFtdcInvestorIDType) - 1);
+		strncpy(qryComm.InstrumentID, instrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
+
+		api->ReqQryInstrumentCommissionRate(&qryComm);
+	}
+	else {
+		QueryNextCommRate(brokerID, investorID);
 	}
 }
 
