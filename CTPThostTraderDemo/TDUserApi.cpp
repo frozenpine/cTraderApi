@@ -732,6 +732,7 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry)
 	case QueryFlag::QryExecution:
 		break;
 	case QueryFlag::QryInstrument:
+		rtn = api->pApi->ReqQryInstrument((CThostFtdcQryInstrumentField*)qry, requestID);
 		break;
 	case QueryFlag::QryMarginRate:
 		rtn = api->pApi->ReqQryInstrumentMarginRate((CThostFtdcQryInstrumentMarginRateField*)qry, requestID);
@@ -750,7 +751,7 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry)
 }
 
 void QueryCache::FinishQuery(int requestID) {
-	qryCount -= qryCache.erase(requestID);
+	qryCount -= int(qryCache.erase(requestID));
 	if (qryCount < 0) {
 		qryCount = 0;
 	}

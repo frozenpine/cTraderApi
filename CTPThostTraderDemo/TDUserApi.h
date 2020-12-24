@@ -33,7 +33,14 @@ class TDUserApi;
 class InstrumentCache
 {
 public:
-	InstrumentCache(TDUserApi* api): marginRateQryIdx(0), commRateQryIdx(0) {
+	InstrumentCache() {
+		marginRateQryIdx = 0;
+		commRateQryIdx = 0;
+		api = NULL;
+	};
+	InstrumentCache(TDUserApi* api) {
+		new (this)InstrumentCache();
+
 		this->api = api;
 	};
 private:
@@ -58,7 +65,7 @@ public:
 	);
 };
 
-enum QueryFlag {
+enum class QueryFlag {
 	QryFinished = 0,
 	QryAccount,
 	QryOrder,
@@ -70,16 +77,33 @@ enum QueryFlag {
 };
 
 struct Query {
-	QueryFlag flag;
+	enum class QueryFlag flag;
 	void* qry;
 };
 
 class QueryCache
 {
 public:
-	QueryCache(TDUserApi *api): inflightQry(1), lastQryTS(0), qryFreq(3), qryCount(0), flag(QueryFlag::QryFinished) {
+	QueryCache() {
+		inflightQry = 0;
+		lastQryTS = 0;
+		qryFreq = 3;
+		qryCount = 0;
+
+		flag = QueryFlag::QryFinished;
+
+		api = NULL;
+	};
+	QueryCache(TDUserApi *api) {
+		new (this)QueryCache();
+
 		this->api = api;
 	};
+	QueryCache(TDUserApi* api, int qryFreq) {
+		new (this)QueryCache(api);
+
+		this->qryFreq = qryFreq;
+	}
 private:
 	int inflightQry;
 	long long lastQryTS;
