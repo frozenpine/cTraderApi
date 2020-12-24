@@ -56,11 +56,10 @@ public:
 	bool InsertInstrument(CThostFtdcInstrumentField* ins);
 	bool InsertMarginRate(CThostFtdcInstrumentMarginRateField* margin);
 	
-	void MoveToNextMarginRateQry() { marginRateQryIdx++; };
-	void QueryMarginRate(const char* brokerID, const char* investorID);
-	void QueryCommRate() {};
+	void QueryNextMarginRate(const char* brokerID, const char* investorID);
+	void QueryNextCommRate() {};
 	
-	std::vector<CThostFtdcInstrumentField*> ListInstrument(
+	std::vector<CThostFtdcInstrumentField*> GetInstrumentList(
 		std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = ""
 	);
 };
@@ -183,7 +182,7 @@ public:
 	void WaitInitialData(int timeout = 0) { waitUntil(&TDUserApi::checkQryStatus, true, timeout); };
 	// timeout in milliseconds, 0 mean infinite.
 	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
-	void PrintInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
+	std::vector<CThostFtdcInstrumentField*> GetInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
 public:
 	// 按合约查询回报顺序依次查询所有合约保证金率
 	void QueryMarginRateAll(const char* brokerID, const char* investorID);

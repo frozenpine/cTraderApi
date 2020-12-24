@@ -44,7 +44,14 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 			/*args[i].*/
 		}
 
-		apiIns->PrintInstruments(ExchangeID, ProductID, InstrumentID);
+		printf("ExchangeID, ProductID, InstrumentID, PriceTick, VolumeMultiple, UnderlyingIns, StrikePrice\n");
+
+		for (auto ins : apiIns->GetInstruments(ExchangeID, ProductID, InstrumentID)) {
+			printf("%s, %s, %s, %.2lf, %d, %s, %.2lf\n",
+				ins->ExchangeID, ins->ProductID, ins->InstrumentID,
+				ins->PriceTick, ins->VolumeMultiple,
+				ins->UnderlyingInstrID, ins->StrikePrice);
+		}
 	}
 	else if (obj == "order") {
 
