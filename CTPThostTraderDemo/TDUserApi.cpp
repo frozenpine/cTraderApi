@@ -319,6 +319,21 @@ void TDUserApi::OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, boo
 
 void TDUserApi::OnRtnOrder(CThostFtdcOrderField* pOrder)
 {
+	CThostFtdcOrderField* ord;
+	if (orderDictByRef.find(pOrder->OrderRef) == orderDictByRef.end() ||
+		orderDictBySysID.find(pOrder->OrderSysID) == orderDictBySysID.end()) {
+		ord = new(CThostFtdcOrderField);
+	}
+	else {
+		ord = orderDictByRef.at(pOrder->OrderRef);
+	}
+
+	assert(NULL != ord);
+	memcpy(ord, pOrder, sizeof(CThostFtdcOrderField));
+
+	orderDictByRef.insert_or_assign(pOrder->OrderRef, ord);
+	orderDictBySysID.insert_or_assign(pOrder->OrderSysID, ord);
+
 	printf(
 		"%s.%s @ %s %s: "
 		"OrderRef[%s], Status[%c], Direction[%s], Price[%.2lf], Volume[%d] Traded[%d] "

@@ -41,7 +41,7 @@ char** split(const char* input, int& outCount, char delim = ',') {
 	char** result = 0;
 
 	int count = 0;
-	int len = strlen(input);
+	int len = int(strlen(input));
 	char* instruments = (char*)malloc(size_t(len) + 1);
 	if (!instruments) {
 		return NULL;
