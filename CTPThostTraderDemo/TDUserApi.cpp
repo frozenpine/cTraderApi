@@ -138,6 +138,8 @@ void TDUserApi::QueryMarginRateAll(const char* brokerID, const char* investorID)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 
 	queryAllMarginRate = true;
+
+	queryCache->CheckAndWait();
 	instrumentCache->QueryNextMarginRate(brokerID, investorID);
 }
 
@@ -146,6 +148,8 @@ void TDUserApi::QueryCommRateAll(const char* brokerID, const char* investorID)
 	waitUntil(&TDUserApi::checkUserLogin, true);
 
 	queryAllCommRate = true;
+	
+	queryCache->CheckAndWait();
 	instrumentCache->QueryNextCommRate(brokerID, investorID);
 }
 
@@ -232,13 +236,13 @@ void TDUserApi::OnRspQryInstrumentMarginRate(
 	}
 
 	if (NULL != pInstrumentMarginRate) {
-		/*printf("Instrument[%s.%s] margin rate: "
+		printf("Instrument[%s.%s] margin rate: "
 			"LongRatioByMoney[%.2lf] LongRatioByVolume[%.2lf] "
 			"ShortRatioByMoney[%.2lf] ShortRatioByVolume[%.2lf]\n",
 			pInstrumentMarginRate->ExchangeID, pInstrumentMarginRate->InstrumentID,
 			pInstrumentMarginRate->LongMarginRatioByMoney, pInstrumentMarginRate->LongMarginRatioByVolume, 
 			pInstrumentMarginRate->ShortMarginRatioByMoney, pInstrumentMarginRate->ShortMarginRatioByVolume
-		);*/
+		);
 
 		queryCache->FinishQuery(nRequestID);
 
@@ -289,14 +293,18 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 		printf("Query instrument info finished.\n");
 
 		queryCache->FinishQuery(nRequestID);
-
-		// instrumentCache->QueryMarginRate(User.BrokerID, User.UserID);
 	}
 }
 
 void TDUserApi::OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	fprintf(stderr, "Request[%d] responsed Error[%d]: %s\n", nRequestID, pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+
+	switch (pRspInfo->ErrorID) {
+	case 90:
+		SLEEP(100);
+		queryCache->RedoQuery(nRequestID);
+	}
 }
 
 void TDUserApi::OnRtnOrder(CThostFtdcOrderField* pOrder)
@@ -702,21 +710,25 @@ void InstrumentCache::QueryNextMarginRate(const char* brokerID, const char* inve
 		return;
 	}
 
-	char* instrumentID = instrumentList[marginRateQryIdx++]->InstrumentID;
+	CThostFtdcInstrumentField* ins = instrumentList[marginRateQryIdx++];
 
-	if (marginRateDict.find(instrumentID) == marginRateDict.end()) {
-		printf("Quering instrument[%s] margin rate.\n", instrumentID);
+	while (true) {
+		if (marginRateDict.find(ins->InstrumentID) == marginRateDict.end() &&
+			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
+			printf("Quering instrument[%s] margin rate.\n", ins->InstrumentID);
 
-		CThostFtdcQryInstrumentMarginRateField qryMargin = {0};
-		strncpy(qryMargin.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-		strncpy(qryMargin.InvestorID, investorID, sizeof(TThostFtdcInvestorIDType) - 1);
-		strncpy(qryMargin.InstrumentID, instrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
-		qryMargin.HedgeFlag = THOST_FTDC_HF_Speculation;
-		
-		api->ReqQryInstrumentMarginRate(&qryMargin);
-	}
-	else {
-		QueryNextMarginRate(brokerID, investorID);
+			CThostFtdcQryInstrumentMarginRateField qryMargin = { 0 };
+			strncpy(qryMargin.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+			strncpy(qryMargin.InvestorID, investorID, sizeof(TThostFtdcInvestorIDType) - 1);
+			strncpy(qryMargin.InstrumentID, ins->InstrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
+			qryMargin.HedgeFlag = THOST_FTDC_HF_Speculation;
+
+			api->ReqQryInstrumentMarginRate(&qryMargin);
+
+			break;
+		}
+
+		ins = instrumentList[marginRateQryIdx++];
 	}
 }
 
@@ -730,20 +742,24 @@ void InstrumentCache::QueryNextCommRate(const char* brokerID, const char* invest
 		return;
 	}
 
-	char* instrumentID = instrumentList[commRateQryIdx++]->InstrumentID;
+	CThostFtdcInstrumentField* ins = instrumentList[commRateQryIdx++];
 
-	if (commRateDict.find(instrumentID) == commRateDict.end()) {
-		printf("Quering instrument[%s] comm rate.\n", instrumentID);
+	while (true) {
+		if (commRateDict.find(ins->InstrumentID) == commRateDict.end() && 
+			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
+			printf("Quering instrument[%s] comm rate.\n", ins->InstrumentID);
 
-		CThostFtdcQryInstrumentCommissionRateField qryComm = {0};
-		strncpy(qryComm.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-		strncpy(qryComm.InvestorID, investorID, sizeof(TThostFtdcInvestorIDType) - 1);
-		strncpy(qryComm.InstrumentID, instrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
+			CThostFtdcQryInstrumentCommissionRateField qryComm = { 0 };
+			strncpy(qryComm.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+			strncpy(qryComm.InvestorID, investorID, sizeof(TThostFtdcInvestorIDType) - 1);
+			strncpy(qryComm.InstrumentID, ins->InstrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
 
-		api->ReqQryInstrumentCommissionRate(&qryComm);
-	}
-	else {
-		QueryNextCommRate(brokerID, investorID);
+			api->ReqQryInstrumentCommissionRate(&qryComm);
+
+			break;
+		}
+
+		ins = instrumentList[commRateQryIdx++];
 	}
 }
 
@@ -770,7 +786,25 @@ std::vector<CThostFtdcInstrumentField*> InstrumentCache::GetInstrumentList(std::
 	return result;
 }
 
-int QueryCache::StartQuery(QueryFlag flag, void* qry)
+void QueryCache::RedoQuery(int requestID)
+{
+	if (qryCache.find(requestID) == qryCache.end()) {
+		fprintf(stderr, "Request[%d] not in query cache.\n", requestID);
+		return;
+	}
+	
+	flag = QueryFlag::QryFinished;
+	auto qry = qryCache.at(requestID);
+	qryCount -= qryCache.erase(requestID);
+	if (qryCount < 0) {
+		qryCount = 0;
+	}
+	
+	StartQuery(qry->flag, qry->qry, false);
+	delete qry;
+}
+
+int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 {
 	assert(api != NULL);
 
@@ -781,43 +815,112 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry)
 	int requestID = ++api->nRequestID;
 
 	int rtn = 0;
+	Query* query = new(Query);
+	query->flag = flag;
 
-	switch (flag)
-	{
-	case QueryFlag::QryFinished:
-		FinishQuery(requestID);
-		return 0;
-	case QueryFlag::QryAccount:
-		rtn = api->pApi->ReqQryTradingAccount((CThostFtdcQryTradingAccountField*)qry, requestID);
-		break;
-	case QueryFlag::QryOrder:
-		rtn = api->pApi->ReqQryOrder((CThostFtdcQryOrderField*)qry, requestID);
-		break;
-	case QueryFlag::QryPosition:
-		rtn = api->pApi->ReqQryInvestorPosition((CThostFtdcQryInvestorPositionField*)qry, requestID);
-		break;
-	case QueryFlag::QryExecution:
-		break;
-	case QueryFlag::QryInstrument:
-		rtn = api->pApi->ReqQryInstrument((CThostFtdcQryInstrumentField*)qry, requestID);
-		break;
-	case QueryFlag::QryMarginRate:
-		rtn = api->pApi->ReqQryInstrumentMarginRate((CThostFtdcQryInstrumentMarginRateField*)qry, requestID);
-		break;
-	case QueryFlag::QryCommissionRate:
-		break;
-	default:
-		fprintf(stderr, "Invalid query flag: %x\n", flag);
-		return 255;
+	while (true) {
+		switch (flag)
+		{
+		case QueryFlag::QryFinished:
+			FinishQuery(requestID);
+			return 0;
+		case QueryFlag::QryAccount:
+			rtn = api->pApi->ReqQryTradingAccount((CThostFtdcQryTradingAccountField*)qry, requestID);
+			
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQryTradingAccountField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQryTradingAccountField));
+			}
+			else {
+				query->qry = qry;
+			}
+
+			break;
+		case QueryFlag::QryOrder:
+			rtn = api->pApi->ReqQryOrder((CThostFtdcQryOrderField*)qry, requestID);
+			
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQryOrderField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQryOrderField));
+			}
+			else {
+				query->qry = qry;
+			}
+
+			break;
+		case QueryFlag::QryPosition:
+			rtn = api->pApi->ReqQryInvestorPosition((CThostFtdcQryInvestorPositionField*)qry, requestID);
+			
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQryInvestorPositionField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQryInvestorPositionField));
+			}
+			else {
+				query->qry = qry;
+			}
+
+			break;
+		case QueryFlag::QryExecution:
+			break;
+		case QueryFlag::QryInstrument:
+			rtn = api->pApi->ReqQryInstrument((CThostFtdcQryInstrumentField*)qry, requestID);
+
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQryInstrumentField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQryInstrumentField));
+			}
+			else {
+				query->qry = qry;
+			}
+
+			break;
+		case QueryFlag::QryMarginRate:
+			rtn = api->pApi->ReqQryInstrumentMarginRate((CThostFtdcQryInstrumentMarginRateField*)qry, requestID);
+
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQryInstrumentMarginRateField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQryInstrumentMarginRateField));
+			}
+			else {
+				query->qry = qry;
+			}
+
+			break;
+		case QueryFlag::QryCommissionRate:
+			break;
+		default:
+			fprintf(stderr, "Invalid query flag: %x\n", flag);
+			return 255;
+		}
+
+		if (0 == rtn) {
+			break;
+		}
+		else {
+			SLEEP(100);
+		}
 	}
 
-	qryCache.insert_or_assign(requestID, Query{ flag, qry });
+	qryCache.insert_or_assign(requestID, query);
 	qryCount++;
 
 	return rtn;
 }
 
 void QueryCache::FinishQuery(int requestID) {
+	if (qryCache.find(requestID) == qryCache.end()) {
+		return;
+	}
+
+	auto qry = qryCache.at(requestID);
+	free(qry->qry);
+	delete qry;
+
 	qryCount -= int(qryCache.erase(requestID));
 	if (qryCount < 0) {
 		qryCount = 0;

@@ -80,11 +80,12 @@ private:
 
 	QueryFlag flag;
 
-	std::map<int, Query> qryCache;
+	std::map<int, Query*> qryCache;
 public:
 	void SetQueryFreq(int freq) { qryFreq = freq; }
 
-	int StartQuery(QueryFlag flag, void* qry);
+	int StartQuery(QueryFlag flag, void* qry, bool copyQry=true);
+	void RedoQuery(int requestID);
 	void FinishQuery(int requestID);
 	
 	bool CheckStatus();
