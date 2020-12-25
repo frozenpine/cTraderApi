@@ -713,6 +713,8 @@ void InstrumentCache::QueryNextMarginRate(const char* brokerID, const char* inve
 	CThostFtdcInstrumentField* ins = instrumentList[marginRateQryIdx++];
 
 	while (true) {
+		// 目前仅支持期货合约的保证金查询
+		// TODO： 支持其他类型的合约保证金查询
 		if (marginRateDict.find(ins->InstrumentID) == marginRateDict.end() &&
 			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
 			printf("Quering instrument[%s] margin rate.\n", ins->InstrumentID);
@@ -745,6 +747,8 @@ void InstrumentCache::QueryNextCommRate(const char* brokerID, const char* invest
 	CThostFtdcInstrumentField* ins = instrumentList[commRateQryIdx++];
 
 	while (true) {
+		// 目前仅支持期货合约的手续费查询
+		// TODO： 支持其他类型的合约手续费查询
 		if (commRateDict.find(ins->InstrumentID) == commRateDict.end() && 
 			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
 			printf("Quering instrument[%s] comm rate.\n", ins->InstrumentID);

@@ -187,6 +187,8 @@ public:
 	void WaitInitialData(int timeout = 0) { waitUntil(&TDUserApi::checkQryStatus, true, timeout); };
 	// timeout in milliseconds, 0 mean infinite.
 	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
+
+	void WaitQueryFinished() { queryCache->CheckAndWait(); };
 	std::vector<CThostFtdcInstrumentField*> GetInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
 public:
 	// 按合约查询回报顺序依次查询所有合约保证金率

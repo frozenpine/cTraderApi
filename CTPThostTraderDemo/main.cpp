@@ -292,7 +292,5 @@ int main(int argc, char* argv[]) {
 
 	api->QueryMarginRateAll(brokerID, userID);
 
-	api->WaitInitialData();
-
 	cli.RunForever();
 }
