@@ -39,6 +39,7 @@ enum class QueryFlag {
 	QryInstrument,
 	QryMarginRate,
 	QryCommissionRate,
+	QryMarketData,
 };
 
 struct Query {
@@ -110,18 +111,23 @@ private:
 	int marginRateQryIdx;
 	int commRateQryIdx;
 	std::map<std::string, CThostFtdcInstrumentField*> instrumentDict;
+	std::map<std::string, CThostFtdcDepthMarketDataField*> marketDataDict;
 	std::map<std::string, CThostFtdcInstrumentMarginRateField*> marginRateDict;
 	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
 	std::vector<CThostFtdcInstrumentField*> instrumentList;
 
 	CThostFtdcInstrumentField* GetNextInstrument(int& idx);
 public:
-	bool InsertInstrument(CThostFtdcInstrumentField* ins);
-	bool InsertMarginRate(CThostFtdcInstrumentMarginRateField* marginRate);
-	bool InsertCommRate(CThostFtdcInstrumentCommissionRateField* commRate);
+	bool InsertOrAssignInstrument(CThostFtdcInstrumentField* pInstrument);
+	bool InsertOrAssignMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData);
+	
+	bool InsertOrAssignMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate);
+	bool InsertOrAssignCommRate(CThostFtdcInstrumentCommissionRateField* commRate);
 
-	void QueryNextMarginRate(const char* brokerID, const char* investorID);
-	void QueryNextCommRate(const char* brokerID, const char* investorID);
+	void QueryNextMarginRate();
+	void QueryNextCommRate();
+
+	void BuildInstrumentList();
 
 	std::vector<CThostFtdcInstrumentField*> GetInstrumentList(
 		std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = ""
@@ -185,17 +191,15 @@ private:
 public:
 	CThostFtdcRspUserLoginField User;
 	// timeout in milliseconds, 0 mean infinite.
-	void WaitInitialData(int timeout = 0) { waitUntil(&TDUserApi::checkQryStatus, true, timeout); };
-	// timeout in milliseconds, 0 mean infinite.
 	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
 
 	void WaitQueryFinished() { queryCache->CheckAndWait(); };
 	std::vector<CThostFtdcInstrumentField*> GetInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
 public:
 	// 按合约查询回报顺序依次查询所有合约保证金率
-	void QueryMarginRateAll(const char* brokerID, const char* investorID);
+	void QueryMarginRateAll();
 	// 按合约查询回报顺序依次查询所有合约手续费率
-	void QueryCommRateAll(const char* brokerID, const char* investorID);
+	void QueryCommRateAll();
 
 	// TODO: 修改所有查询调用为：通过QueryCache建立查询缓存
 	
@@ -324,7 +328,7 @@ public:
 	virtual void OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询行情响应
-	virtual void OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询投资者结算结果响应
 	virtual void OnRspQrySettlementInfo(CThostFtdcSettlementInfoField* pSettlementInfo, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
