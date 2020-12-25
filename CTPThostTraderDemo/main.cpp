@@ -3,6 +3,7 @@
 #include <csignal>
 #include <iostream>
 #include <regex>
+#include <float.h>
 
 #include "TDUserApi.h"
 #include "ini.h"
@@ -17,6 +18,8 @@
 const char flowPath[] = "flow/";
 const std::regex floatPattern("\\d*\\.?\\d+");
 const std::regex intPattern("\\d+");
+
+#define NORMAL_PRICE(price) (price) == DBL_MAX? 0.0 : (price)
 
 char* ltrim(char* s) {
 	while (isspace(*s)) s++;
@@ -146,7 +149,7 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 			printf("%s, %s, %s, %.2lf, %d, %s, %.2lf\n",
 				ins->ExchangeID, ins->ProductID, ins->InstrumentID,
 				ins->PriceTick, ins->VolumeMultiple,
-				ins->UnderlyingInstrID, ins->StrikePrice);
+				ins->UnderlyingInstrID, NORMAL_PRICE(ins->StrikePrice));
 		}
 	}
 	else if (obj == "order") {
@@ -388,6 +391,7 @@ int main(int argc, char* argv[]) {
 
 	// api->QueryMarginRateAll(brokerID, userID);
 	// api->QueryCommRateAll(brokerID, userID);
+	api->WaitQueryFinished();
 
 	cli.RunForever();
 }
