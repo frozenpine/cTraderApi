@@ -49,7 +49,6 @@ char** split(const char* input, int& outCount, char delim = ',') {
 	char* last_comma = 0;
 	char delimer[2] = {0};
 	delimer[0] = delim;
-	delimer[1] = 0;
 
 	while (*tmp) {
 		if (delim == *tmp) {
@@ -123,18 +122,18 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 				continue;
 			}
 
-			if (strcmp(results[0], "ExchangeID") == 0) {
-				ExchangeID = results[1];
+			if (strcmp(trim(results[0]), "ExchangeID") == 0) {
+				ExchangeID = trim(results[1]);
 				continue;
 			}
 
-			if (strcmp(results[0], "ProductID") == 0) {
-				ProductID = results[1];
+			if (strcmp(trim(results[0]), "ProductID") == 0) {
+				ProductID = trim(results[1]);
 				continue;
 			}
 
-			if (strcmp(results[0], "InstrumentID") == 0) {
-				InstrumentID = results[1];
+			if (strcmp(trim(results[0]), "InstrumentID") == 0) {
+				InstrumentID = trim(results[1]);
 				continue;
 			}
 
