@@ -291,6 +291,7 @@ int main(int argc, char* argv[]) {
 	printf("Quering instrument info.\n");
 
 	api->QueryMarginRateAll(brokerID, userID);
+	// api->QueryCommRateAll(brokerID, userID);
 
 	cli.RunForever();
 }

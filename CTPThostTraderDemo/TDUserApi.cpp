@@ -265,6 +265,16 @@ void TDUserApi::OnRspQryInstrumentCommissionRate(
 	}
 
 	if (NULL != pInstrumentCommissionRate) {
+		printf("Instrument[%s.%s] comm rate: "
+			"OpenRatioByMoney[%.2lf] OpenRatioByVolume[%.2lf] "
+			"CloseRatioByMoney[%.2lf] CloseRatioByVolume[%.2lf] "
+			"CloseTodayRatioByMoney[%.2lf] CloseTodayRatioByVolume[%.2lf]\n",
+			pInstrumentCommissionRate->ExchangeID, pInstrumentCommissionRate->InstrumentID,
+			pInstrumentCommissionRate->OpenRatioByMoney, pInstrumentCommissionRate->OpenRatioByVolume,
+			pInstrumentCommissionRate->CloseRatioByMoney, pInstrumentCommissionRate->CloseRatioByVolume,
+			pInstrumentCommissionRate->CloseTodayRatioByMoney, pInstrumentCommissionRate->CloseTodayRatioByVolume
+		);
+
 		queryCache->FinishQuery(nRequestID);
 
 		instrumentCache->InsertCommRate(pInstrumentCommissionRate);
@@ -751,7 +761,7 @@ void InstrumentCache::QueryNextCommRate(const char* brokerID, const char* invest
 	while (NULL != ins) {
 		// 目前仅支持期货合约的手续费查询
 		// TODO： 支持其他类型的合约手续费查询
-		if (commRateDict.find(ins->InstrumentID) == commRateDict.end() && 
+		if (commRateDict.find(ins->InstrumentID) == commRateDict.end() &&
 			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
 			printf("Quering instrument[%s] comm rate.\n", ins->InstrumentID);
 
@@ -903,6 +913,17 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 
 			break;
 		case QueryFlag::QryCommissionRate:
+			rtn = api->pApi->ReqQryInstrumentCommissionRate((CThostFtdcQryInstrumentCommissionRateField*)qry, requestID);
+			
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQryInstrumentCommissionRateField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQryInstrumentCommissionRateField));
+			}
+			else {
+				query->qry = qry;
+			}
+			
 			break;
 		default:
 			fprintf(stderr, "Invalid query flag: %x\n", flag);
