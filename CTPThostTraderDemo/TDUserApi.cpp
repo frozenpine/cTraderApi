@@ -678,6 +678,15 @@ bool InstrumentCache::InsertInstrument(CThostFtdcInstrumentField* ins)
 	return true;
 }
 
+CThostFtdcInstrumentField* InstrumentCache::GetNextInstrument(int& idx)
+{
+	if (idx >= instrumentList.size()) {
+		return NULL;
+	}
+
+	return instrumentList[idx++];
+}
+
 bool InstrumentCache::InsertMarginRate(CThostFtdcInstrumentMarginRateField* marginRate)
 {
 	if (NULL == marginRate) {
@@ -704,15 +713,9 @@ void InstrumentCache::QueryNextMarginRate(const char* brokerID, const char* inve
 {
 	assert(api != NULL);
 
-	if (marginRateQryIdx >= instrumentList.size()) {
-		api->queryAllMarginRate = false;
-		marginRateQryIdx = 0;
-		return;
-	}
+	CThostFtdcInstrumentField* ins = GetNextInstrument(marginRateQryIdx);
 
-	CThostFtdcInstrumentField* ins = instrumentList[marginRateQryIdx++];
-
-	while (true) {
+	while (NULL != ins) {
 		// 目前仅支持期货合约的保证金查询
 		// TODO： 支持其他类型的合约保证金查询
 		if (marginRateDict.find(ins->InstrumentID) == marginRateDict.end() &&
@@ -727,26 +730,25 @@ void InstrumentCache::QueryNextMarginRate(const char* brokerID, const char* inve
 
 			api->ReqQryInstrumentMarginRate(&qryMargin);
 
-			break;
+			return;
 		}
 
-		ins = instrumentList[marginRateQryIdx++];
+		ins = GetNextInstrument(marginRateQryIdx);
 	}
+
+	api->queryAllMarginRate = false;
+	marginRateQryIdx = 0;
+
+	printf("Quering instrument margin rate finisehd.\n");
 }
 
 void InstrumentCache::QueryNextCommRate(const char* brokerID, const char* investorID)
 {
 	assert(api != NULL);
 
-	if (commRateQryIdx >= instrumentList.size()) {
-		api->queryAllCommRate = false;
-		commRateQryIdx = 0;
-		return;
-	}
+	CThostFtdcInstrumentField* ins = GetNextInstrument(commRateQryIdx);
 
-	CThostFtdcInstrumentField* ins = instrumentList[commRateQryIdx++];
-
-	while (true) {
+	while (NULL != ins) {
 		// 目前仅支持期货合约的手续费查询
 		// TODO： 支持其他类型的合约手续费查询
 		if (commRateDict.find(ins->InstrumentID) == commRateDict.end() && 
@@ -760,11 +762,16 @@ void InstrumentCache::QueryNextCommRate(const char* brokerID, const char* invest
 
 			api->ReqQryInstrumentCommissionRate(&qryComm);
 
-			break;
+			return;
 		}
 
-		ins = instrumentList[commRateQryIdx++];
+		ins = GetNextInstrument(commRateQryIdx);
 	}
+
+	api->queryAllCommRate = false;
+	commRateQryIdx = 0;
+
+	printf("Quering instrument comm rate finished.\n");
 }
 
 std::vector<CThostFtdcInstrumentField*> InstrumentCache::GetInstrumentList(std::string ExchangeID, std::string ProductID, std::string InstrumentID)
@@ -799,7 +806,7 @@ void QueryCache::RedoQuery(int requestID)
 	
 	flag = QueryFlag::QryFinished;
 	auto qry = qryCache.at(requestID);
-	qryCount -= qryCache.erase(requestID);
+	qryCount -= int(qryCache.erase(requestID));
 	if (qryCount < 0) {
 		qryCount = 0;
 	}

@@ -114,6 +114,7 @@ private:
 	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
 	std::vector<CThostFtdcInstrumentField*> instrumentList;
 
+	CThostFtdcInstrumentField* GetNextInstrument(int& idx);
 public:
 	bool InsertInstrument(CThostFtdcInstrumentField* ins);
 	bool InsertMarginRate(CThostFtdcInstrumentMarginRateField* marginRate);
