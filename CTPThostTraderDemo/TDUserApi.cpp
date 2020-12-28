@@ -358,7 +358,7 @@ void TDUserApi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField* pSettlemen
 		printf("Settlement info for %s.%s on %s\n",
 			pSettlementInfo->BrokerID, pSettlementInfo->InvestorID, pSettlementInfo->TradingDay);
 
-		printf("%s", pSettlementInfo->Content);
+		printf("%s\n", pSettlementInfo->Content);
 	}
 
 	if (bIsLast) {
@@ -381,7 +381,8 @@ void TDUserApi::OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmFie
 	}
 
 	if (NULL != pSettlementInfoConfirm) {
-		if (strlen(pSettlementInfoConfirm->ConfirmDate) > 0 && strlen(pSettlementInfoConfirm->ConfirmTime) > 0) {
+		if (strlen(pSettlementInfoConfirm->ConfirmDate) > 0 && 
+			strlen(pSettlementInfoConfirm->ConfirmTime) > 0) {
 			setFlag(&settlementConfirmed, true);
 		}
 		else {
@@ -1064,25 +1065,34 @@ void QueryCache::FinishQuery(int requestID) {
 	g_cond.notify_one();
 }
 
-bool QueryCache::CheckStatus()
+bool QueryCache::CheckStatus(long long& timeout)
 {
 	if (flag != QueryFlag::QryFinished) {
+		timeout = 0;
 		return false;
 	}
 
-	long long ms = get_ms_ts();
-	if (ms - lastQryTS < 1000 && qryCount >= qryFreq) {
+	timeout = get_ms_ts() - lastQryTS;
+	if (timeout < 1000 && qryCount >= qryFreq) {
 		return false;
 	}
 
+	timeout = 0;
 	return true;
 }
 
 void QueryCache::CheckAndWait() {
 	std::unique_lock<std::mutex> locker(g_lock);
-
-	while (!CheckStatus()) {
-		g_cond.wait(locker);
+	
+	long long timeout;
+	
+	while (!CheckStatus(timeout)) {
+		if (timeout > 0) {
+			g_cond.wait_for(locker, std::chrono::milliseconds(timeout));
+		}
+		else {
+			g_cond.wait(locker);
+		}
 	}
 }
 

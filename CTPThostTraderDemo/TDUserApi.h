@@ -91,7 +91,7 @@ public:
 	void RedoQuery(int requestID);
 	void FinishQuery(int requestID);
 	
-	bool CheckStatus();
+	bool CheckStatus(long long& timeout);
 	void CheckAndWait();
 };
 
