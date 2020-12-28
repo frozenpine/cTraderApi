@@ -32,6 +32,8 @@ class TDUserApi;
 
 enum class QueryFlag {
 	QryFinished = 0,
+	QrySettlementInfo,
+	QrySettlementConfirm,
 	QryAccount,
 	QryOrder,
 	QryPosition,
@@ -134,6 +136,20 @@ public:
 	);
 };
 
+class OrderCache
+{
+public:
+	OrderCache() {};
+private:
+	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
+	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
+	std::vector<CThostFtdcOrderField*> orderList;
+public:
+	void InsertOrAssignOrder(CThostFtdcOrderField* pOrder);
+
+	std::vector<CThostFtdcOrderField*> GetOrders(std::string orderRef = "", std::string orderSysID = "");
+};
+
 class TDUserApi : public CThostFtdcTraderSpi
 {
 public:
@@ -146,10 +162,12 @@ public:
 		qryFinished = true;
 		queryAllMarginRate = false;
 		queryAllCommRate = false;
+		settlementConfirmed = false;
 		responsed = true;
 
 		instrumentCache = new InstrumentCache(this);
 		queryCache = new QueryCache(this);
+		orderCache = new(OrderCache);
 	};
 
 	friend class QueryCache;
@@ -168,12 +186,12 @@ private:
 	bool responsed;
 	bool queryAllMarginRate;
 	bool queryAllCommRate;
+	bool settlementConfirmed;
 	std::atomic<int> maxOrderRef;
 
 	InstrumentCache* instrumentCache;
 	QueryCache* queryCache;
-	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
-	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
+	OrderCache* orderCache;
 	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
 
 	bool checkAPIInitialized() { return pApi != NULL; };
@@ -182,6 +200,7 @@ private:
 	bool checkUserLogin() { return login; };
 	bool checkQryStatus() { return qryFinished; };
 	bool checkRspStatus() { return responsed; };
+	bool checkSettlementConfirmed() { return settlementConfirmed; }
 
 	void setFlag(bool* flag, bool value);
 
@@ -193,8 +212,12 @@ public:
 	// timeout in milliseconds, 0 mean infinite.
 	void WaitResponse(int timeout=0) { waitUntil(&TDUserApi::checkRspStatus, true, timeout); };
 
+	void WaitSettlementConfirmed(int timeout = 0) { waitUntil(&TDUserApi::checkSettlementConfirmed, true, timeout); }
+
 	void WaitQueryFinished() { queryCache->CheckAndWait(); };
 	std::vector<CThostFtdcInstrumentField*> GetInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
+	std::vector<CThostFtdcOrderField*> GetOrders(std::string orderRef = "", std::string orderSysID = "");
+	std::vector<CThostFtdcInvestorPositionField*> GetPositions(std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = "") {};
 public:
 	// 按合约查询回报顺序依次查询所有合约保证金率
 	void QueryMarginRateAll();
@@ -259,7 +282,7 @@ public:
 	virtual void OnRspQueryMaxOrderVolume(CThostFtdcQueryMaxOrderVolumeField* pQueryMaxOrderVolume, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///投资者结算结果确认响应
-	virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///删除预埋单响应
 	virtual void OnRspRemoveParkedOrder(CThostFtdcRemoveParkedOrderField* pRemoveParkedOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
@@ -331,7 +354,7 @@ public:
 	virtual void OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询投资者结算结果响应
-	virtual void OnRspQrySettlementInfo(CThostFtdcSettlementInfoField* pSettlementInfo, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspQrySettlementInfo(CThostFtdcSettlementInfoField* pSettlementInfo, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询转帐银行响应
 	virtual void OnRspQryTransferBank(CThostFtdcTransferBankField* pTransferBank, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
@@ -343,7 +366,7 @@ public:
 	virtual void OnRspQryNotice(CThostFtdcNoticeField* pNotice, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
 
 	///请求查询结算信息确认响应
-	virtual void OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
+	virtual void OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast);
 
 	///请求查询投资者持仓明细响应
 	virtual void OnRspQryInvestorPositionCombineDetail(CThostFtdcInvestorPositionCombineDetailField* pInvestorPositionCombineDetail, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast) {};
@@ -669,7 +692,7 @@ public:
 	int ReqTradingAccountPasswordUpdate(CThostFtdcTradingAccountPasswordUpdateField* pTradingAccountPasswordUpdate);
 
 	///查询用户当前支持的认证模式
-	int ReqUserAuthMethod(CThostFtdcReqUserAuthMethodField* pReqUserAuthMethod);
+	int ReqUserAuthMethod(CThostFtdcReqUserAuthMethodField* pReqUserAuthMethod) {};
 
 	///用户发出获取图形验证码请求
 	int ReqGenUserCaptcha(CThostFtdcReqGenUserCaptchaField* pReqGenUserCaptcha) {};
@@ -702,7 +725,7 @@ public:
 	int ReqQueryMaxOrderVolume(CThostFtdcQueryMaxOrderVolumeField* pQueryMaxOrderVolume) {};
 
 	///投资者结算结果确认
-	int ReqSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm) {};
+	int ReqSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm);
 
 	///请求删除预埋单
 	int ReqRemoveParkedOrder(CThostFtdcRemoveParkedOrderField* pRemoveParkedOrder) {};
@@ -741,19 +764,19 @@ public:
 	int ReqQryOrder(CThostFtdcQryOrderField* pQryOrder);
 
 	///请求查询成交
-	int ReqQryTrade(CThostFtdcQryTradeField* pQryTrade);
+	int ReqQryTrade(CThostFtdcQryTradeField* pQryTrade) {};
 
 	///请求查询投资者持仓
 	int ReqQryInvestorPosition(CThostFtdcQryInvestorPositionField* pQryInvestorPosition);
 
 	///请求查询资金账户
-	int ReqQryTradingAccount(CThostFtdcQryTradingAccountField* pQryTradingAccount);
+	int ReqQryTradingAccount(CThostFtdcQryTradingAccountField* pQryTradingAccount) {};
 
 	///请求查询投资者
-	int ReqQryInvestor(CThostFtdcQryInvestorField* pQryInvestor);
+	int ReqQryInvestor(CThostFtdcQryInvestorField* pQryInvestor) {};
 
 	///请求查询交易编码
-	int ReqQryTradingCode(CThostFtdcQryTradingCodeField* pQryTradingCode);
+	int ReqQryTradingCode(CThostFtdcQryTradingCodeField* pQryTradingCode) {};
 
 	///请求查询合约保证金率
 	int ReqQryInstrumentMarginRate(CThostFtdcQryInstrumentMarginRateField* pQryInstrumentMarginRate);
@@ -762,10 +785,10 @@ public:
 	int ReqQryInstrumentCommissionRate(CThostFtdcQryInstrumentCommissionRateField* pQryInstrumentCommissionRate);
 
 	///请求查询交易所
-	int ReqQryExchange(CThostFtdcQryExchangeField* pQryExchange);
+	int ReqQryExchange(CThostFtdcQryExchangeField* pQryExchange) {};
 
 	///请求查询产品
-	int ReqQryProduct(CThostFtdcQryProductField* pQryProduct);
+	int ReqQryProduct(CThostFtdcQryProductField* pQryProduct) {};
 
 	///请求查询合约
 	int ReqQryInstrument(CThostFtdcQryInstrumentField* pQryInstrument);
@@ -789,7 +812,7 @@ public:
 	int ReqQrySettlementInfoConfirm(CThostFtdcQrySettlementInfoConfirmField* pQrySettlementInfoConfirm);
 
 	///请求查询投资者持仓明细
-	int ReqQryInvestorPositionCombineDetail(CThostFtdcQryInvestorPositionCombineDetailField* pQryInvestorPositionCombineDetail);
+	int ReqQryInvestorPositionCombineDetail(CThostFtdcQryInvestorPositionCombineDetailField* pQryInvestorPositionCombineDetail) {};
 
 	///请求查询保证金监管系统经纪公司资金账户密钥
 	int ReqQryCFMMCTradingAccountKey(CThostFtdcQryCFMMCTradingAccountKeyField* pQryCFMMCTradingAccountKey) {};
@@ -801,10 +824,10 @@ public:
 	int ReqQryInvestorProductGroupMargin(CThostFtdcQryInvestorProductGroupMarginField* pQryInvestorProductGroupMargin) {};
 
 	///请求查询交易所保证金率
-	int ReqQryExchangeMarginRate(CThostFtdcQryExchangeMarginRateField* pQryExchangeMarginRate);
+	int ReqQryExchangeMarginRate(CThostFtdcQryExchangeMarginRateField* pQryExchangeMarginRate) {};
 
 	///请求查询交易所调整保证金率
-	int ReqQryExchangeMarginRateAdjust(CThostFtdcQryExchangeMarginRateAdjustField* pQryExchangeMarginRateAdjust);
+	int ReqQryExchangeMarginRateAdjust(CThostFtdcQryExchangeMarginRateAdjustField* pQryExchangeMarginRateAdjust) {};
 
 	///请求查询汇率
 	int ReqQryExchangeRate(CThostFtdcQryExchangeRateField* pQryExchangeRate) {};

@@ -153,7 +153,17 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 		}
 	}
 	else if (obj == "order") {
+		printf("Status, SysID, OrderRef, ExchangeID, InstrumentID, Direction, LimitPrice, "
+			"VolumeTotalOrigin, VolumeTraded, InsertDate, InsertTime, StatusMsg\n");
 
+		for (auto ord : apiIns->GetOrders()) {
+			printf("%c, %s, %s, %s, %s, %c, %.2lf, %d, %d, %s, %s, %s\n",
+				ord->OrderStatus, ord->OrderSysID, ord->OrderRef, 
+				ord->ExchangeID, ord->InstrumentID, 
+				ord->Direction, ord->LimitPrice, 
+				ord->VolumeTotalOriginal, ord->VolumeTraded, 
+				ord->InsertDate, ord->InsertTime, ord->StatusMsg);
+		}
 	}
 	else if (obj == "position") {
 
@@ -245,7 +255,11 @@ int cmdOrderCancel(void* api, const std::vector<std::string>& args) {
 
 	auto apiIns = ((TDUserApi*)api);
 
-	// TODO: 填写撤单参数
+	CThostFtdcInputOrderActionField ordAction = { 0 };
+	strcpy_s(ordAction.BrokerID, apiIns->User.BrokerID);
+	strcpy_s(ordAction.InvestorID, apiIns->User.UserID);
+	strcpy_s(ordAction.UserID, apiIns->User.UserID);
+	ordAction.ActionFlag = THOST_FTDC_AF_Delete;
 
 	return apiIns->ReqOrderAction(&ord);
 }
@@ -284,12 +298,15 @@ int main(int argc, char* argv[]) {
 	}
 
 	// 加载配置文件
+	// initial config file path.
 	mINI::INIFile setting_file(confFile);
 
 	// 创建ini结构体
+	// 
 	mINI::INIStructure ini;
 
 	// 配置文件载入结构体解析
+	// load ini config file & parse configuration
 	setting_file.read(ini);
 
 	const char* frontAddr = ini["front_info"]["Address"].c_str();
@@ -297,6 +314,7 @@ int main(int argc, char* argv[]) {
 	const bool isFens = getValueBool(ini["front_info"]["IsFens"]);
 
 	// 连接字符串格式：tcp://IP:PORT 的最大长度为 6+15+1+5+1
+	// conn string format: tcp://IP:PORT, max length 6+15+1+5+1.
 	char conn[28] = {0};
 	sprintf(conn, "tcp://%s:%s", frontAddr, frontPort);
 
@@ -389,9 +407,15 @@ int main(int argc, char* argv[]) {
 	api->ReqQryInstrument(&qryIns);
 	printf("Quering instrument info.\n");
 
-	// api->QueryMarginRateAll(brokerID, userID);
-	// api->QueryCommRateAll(brokerID, userID);
-	api->WaitQueryFinished();
+	// api->QueryMarginRateAll();
+	// api->QueryCommRateAll();
+
+	CThostFtdcQrySettlementInfoConfirmField settleConfirm = { 0 };
+	memcpy(settleConfirm.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+	memcpy(settleConfirm.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
+	api->ReqQrySettlementInfoConfirm(&settleConfirm);
+	
+	api->WaitSettlementConfirmed();
 
 	cli.RunForever();
 }
