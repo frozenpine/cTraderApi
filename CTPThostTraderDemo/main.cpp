@@ -264,10 +264,12 @@ int main(int argc, char* argv[]) {
 	char* confFile = (char *)"setting.ini";
 
 	if (argc > 1) {
-		if (strlen(argv[1]) > strlen(confFile)) {
-			confFile = (char*)calloc(strlen(argv[1]) + 1, sizeof(char));
+		size_t argLen = strlen(argv[1]);
+		if (argLen > strlen(confFile)) {
+			confFile = (char*)malloc(argLen + 1);
 		}
 		
+		confFile[argLen] = 0;
 		strncpy(confFile, argv[1], strlen(argv[1]));
 	}
 
