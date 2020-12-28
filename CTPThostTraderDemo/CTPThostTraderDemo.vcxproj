@@ -151,6 +151,9 @@
     <PreLinkEvent>
       <Command>copy /Y /B "$(SolutionDir)$(ProjectName)\libs\x64\thosttraderapi_se.dll" "$(SolutionDir)x64\$(Configuration)\"</Command>
     </PreLinkEvent>
+    <PostBuildEvent>
+      <Command>xcopy /C $(ProjectDir)libs\x64\thosttraderapi_se.dll $(SolutionDir)x64\Debug</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="error.dtd" />
