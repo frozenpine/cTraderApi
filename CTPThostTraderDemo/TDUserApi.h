@@ -119,7 +119,7 @@ private:
 	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
 	std::vector<CThostFtdcInstrumentField*> instrumentList;
 
-	CThostFtdcInstrumentField* GetNextInstrument(int& idx);
+	CThostFtdcInstrumentField* getNextInstrument(int& idx);
 public:
 	bool InsertOrAssignInstrument(CThostFtdcInstrumentField* pInstrument);
 	bool InsertOrAssignMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData);

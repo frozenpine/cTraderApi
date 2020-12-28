@@ -263,9 +263,7 @@ void TDUserApi::OnRspQryInstrumentMarginRate(
 		);
 
 		instrumentCache->InsertOrAssignMarginRate(pInstrumentMarginRate);
-	}
 
-	if (bIsLast) {
 		queryCache->FinishQuery(nRequestID);
 
 		if (queryAllMarginRate) {
@@ -296,9 +294,7 @@ void TDUserApi::OnRspQryInstrumentCommissionRate(
 		);
 
 		instrumentCache->InsertOrAssignCommRate(pInstrumentCommissionRate);
-	}
 
-	if (bIsLast) {
 		queryCache->FinishQuery(nRequestID);
 
 		if (queryAllCommRate) {
@@ -384,6 +380,7 @@ void TDUserApi::OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmFie
 	if (NULL != pSettlementInfoConfirm) {
 		if (strlen(pSettlementInfoConfirm->ConfirmDate) > 0 && 
 			strlen(pSettlementInfoConfirm->ConfirmTime) > 0) {
+			printf("Settlement info already confirmed.\n");
 			setFlag(&settlementConfirmed, true);
 		}
 		else {
@@ -409,7 +406,7 @@ void TDUserApi::OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, boo
 
 	switch (pRspInfo->ErrorID) {
 	case 90:
-		SLEEP(100);
+		SLEEP(500);
 		queryCache->RedoQuery(nRequestID);
 	}
 }
@@ -722,7 +719,7 @@ bool InstrumentCache::InsertOrAssignMarketData(CThostFtdcDepthMarketDataField* p
 	return true;
 }
 
-CThostFtdcInstrumentField* InstrumentCache::GetNextInstrument(int& idx)
+CThostFtdcInstrumentField* InstrumentCache::getNextInstrument(int& idx)
 {
 	if (idx >= instrumentList.size()) {
 		return NULL;
@@ -777,14 +774,13 @@ void InstrumentCache::QueryNextMarginRate()
 {
 	assert(api != NULL);
 
-	CThostFtdcInstrumentField* ins = GetNextInstrument(marginRateQryIdx);
+	CThostFtdcInstrumentField* ins = getNextInstrument(marginRateQryIdx);
 
 	while (NULL != ins) {
 		// 目前仅支持期货合约的保证金查询
 		// TODO： 支持其他类型的合约保证金查询
 		if (marginRateDict.find(ins->InstrumentID) == marginRateDict.end() &&
 			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
-			printf("Quering instrument[%s] margin rate.\n", ins->InstrumentID);
 
 			CThostFtdcQryInstrumentMarginRateField qryMargin = { 0 };
 			strncpy(qryMargin.BrokerID, api->User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
@@ -797,7 +793,7 @@ void InstrumentCache::QueryNextMarginRate()
 			return;
 		}
 
-		ins = GetNextInstrument(marginRateQryIdx);
+		ins = getNextInstrument(marginRateQryIdx);
 	}
 
 	api->queryAllMarginRate = false;
@@ -810,14 +806,13 @@ void InstrumentCache::QueryNextCommRate()
 {
 	assert(api != NULL);
 
-	CThostFtdcInstrumentField* ins = GetNextInstrument(commRateQryIdx);
+	CThostFtdcInstrumentField* ins = getNextInstrument(commRateQryIdx);
 
 	while (NULL != ins) {
 		// 目前仅支持期货合约的手续费查询
 		// TODO： 支持其他类型的合约手续费查询
 		if (commRateDict.find(ins->InstrumentID) == commRateDict.end() &&
 			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
-			printf("Quering instrument[%s] comm rate.\n", ins->InstrumentID);
 
 			CThostFtdcQryInstrumentCommissionRateField qryComm = { 0 };
 			strncpy(qryComm.BrokerID, api->User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
@@ -829,7 +824,7 @@ void InstrumentCache::QueryNextCommRate()
 			return;
 		}
 
-		ins = GetNextInstrument(commRateQryIdx);
+		ins = getNextInstrument(commRateQryIdx);
 	}
 
 	api->queryAllCommRate = false;
@@ -885,6 +880,7 @@ void QueryCache::RedoQuery(int requestID)
 	if (qryCount < 0) {
 		qryCount = 0;
 	}
+	g_cond.notify_one();
 	
 	StartQuery(qry->flag, qry->qry, false);
 	delete qry;
@@ -991,7 +987,10 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 
 			break;
 		case QueryFlag::QryMarginRate:
-			rtn = api->pApi->ReqQryInstrumentMarginRate((CThostFtdcQryInstrumentMarginRateField*)qry, requestID);
+		{
+			auto pQryInstrumentMarginRate = (CThostFtdcQryInstrumentMarginRateField*)qry;
+			printf("Quering instrument[%s] margin rate.\n", pQryInstrumentMarginRate->InstrumentID);
+			rtn = api->pApi->ReqQryInstrumentMarginRate(pQryInstrumentMarginRate, requestID);
 
 			if (copyQry) {
 				query->qry = malloc(sizeof(CThostFtdcQryInstrumentMarginRateField));
@@ -1003,9 +1002,13 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 			}
 
 			break;
+		}
 		case QueryFlag::QryCommissionRate:
-			rtn = api->pApi->ReqQryInstrumentCommissionRate((CThostFtdcQryInstrumentCommissionRateField*)qry, requestID);
-			
+		{
+			auto pQryInstrumentCommissionRate = (CThostFtdcQryInstrumentCommissionRateField*)qry;
+			printf("Quering instrument[%s] comm rate.\n", pQryInstrumentCommissionRate->InstrumentID);
+			rtn = api->pApi->ReqQryInstrumentCommissionRate(pQryInstrumentCommissionRate, requestID);
+
 			if (copyQry) {
 				query->qry = malloc(sizeof(CThostFtdcQryInstrumentCommissionRateField));
 				assert(query->qry != NULL);
@@ -1014,8 +1017,9 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 			else {
 				query->qry = qry;
 			}
-			
+
 			break;
+		}
 		case QueryFlag::QryMarketData:
 			rtn = api->pApi->ReqQryDepthMarketData((CThostFtdcQryDepthMarketDataField*)qry, requestID);
 
@@ -1037,9 +1041,19 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 		if (0 == rtn) {
 			break;
 		}
-		else {
-			SLEEP(100);
+		
+		if (-2 == rtn){
+			fprintf(stderr, "Inflight request exceeded.\n");
 		}
+		else if (-3 == rtn) {
+			fprintf(stderr, "Flow control exceeded.\n");
+		}
+		else {
+			fprintf(stderr, "Unknown request rtn code: %d\n", rtn);
+			return rtn;
+		}
+
+		SLEEP(500);
 	}
 
 	qryCache.insert_or_assign(requestID, query);
@@ -1069,12 +1083,14 @@ void QueryCache::FinishQuery(int requestID) {
 bool QueryCache::chkStatus(long long& timeout)
 {
 	if (flag != QueryFlag::QryFinished) {
+		// fprintf(stderr, "Last query not finished.\n");
 		timeout = 0;
 		return false;
 	}
 
 	timeout = get_ms_ts() - lastQryTS;
 	if (timeout < 1000 && qryCount >= qryFreq) {
+		// fprintf(stderr, "Query frequence exceeded.\n");
 		return false;
 	}
 
