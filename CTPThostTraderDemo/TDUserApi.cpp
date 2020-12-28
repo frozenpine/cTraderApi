@@ -2,6 +2,7 @@
 #include <chrono>
 
 #include "TDUserApi.h"
+#include "tools.h"
 
 TDUserApi::~TDUserApi()
 {
@@ -1136,10 +1137,28 @@ std::vector<CThostFtdcOrderField*> OrderCache::GetOrders(std::string orderRef, s
 {
 	std::vector<CThostFtdcOrderField*> result;
 
-	if (orderSysID != "" && (orderDictBySysID.find(orderSysID) != orderDictBySysID.end())) {
-		result.push_back(orderDictBySysID.at(orderSysID));
-	} else if (orderRef != "" && (orderDictByRef.find(orderRef) != orderDictByRef.end())) {
-		result.push_back(orderDictByRef.at(orderRef));
+	if (orderSysID != "") {
+		int count = 0;
+		char** idList = split(orderSysID.c_str(), count);
+		
+		for (int i = 0; i < count; i++) {
+			if (orderDictBySysID.find(idList[i]) == orderDictBySysID.end()) {
+				continue;
+			}
+
+			result.push_back(orderDictBySysID.at(idList[i]));
+		}
+	} else if (orderRef != "") {
+		int count = 0;
+		char** refList = split(orderRef.c_str(), count);
+
+		for (int i = 0; i < count; i++) {
+			if (orderDictByRef.find(refList[i]) == orderDictByRef.end()) {
+				continue;
+			}
+
+			result.push_back(orderDictByRef.at(refList[i]));
+		}
 	}
 	else {
 		result = orderList;

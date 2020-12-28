@@ -167,6 +167,7 @@
     <ClInclude Include="ThostFtdcUserApiDataType.h" />
     <ClInclude Include="ThostFtdcUserApiStruct.h" />
     <ClInclude Include="TDUserApi.h" />
+    <ClInclude Include="tools.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="error.xml" />
@@ -175,6 +176,7 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TDUserApi.cpp" />
+    <ClCompile Include="tools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\x64\thosttraderapi_se.lib" />

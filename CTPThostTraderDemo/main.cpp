@@ -4,89 +4,18 @@
 #include <iostream>
 #include <regex>
 #include <float.h>
+#include <assert.h>
 
 #include "TDUserApi.h"
 #include "ini.h"
 #include "Command.h"
-
-#ifdef _WIN32
-#define STRDUP _strdup
-#else
-#define STRDUP strdup
-#endif
+#include "tools.h"
 
 const char flowPath[] = "flow/";
 const std::regex floatPattern("\\d*\\.?\\d+");
 const std::regex intPattern("\\d+");
 
 #define NORMAL_PRICE(price) (price) == DBL_MAX? 0.0 : (price)
-
-char* ltrim(char* s) {
-	while (isspace(*s)) s++;
-	return s;
-}
-
-char* rtrim(char* s) {
-	char* back = s + strlen(s);
-	while (isspace(*--back));
-	*(back + 1) = '\0';
-	return s;
-}
-
-char* trim(char* s) {
-	return rtrim(ltrim(s));
-}
-
-char** split(const char* input, int& outCount, char delim = ',') {
-	char** result = 0;
-
-	int count = 0;
-	int len = int(strlen(input));
-	char* instruments = (char*)malloc(size_t(len) + 1);
-	if (!instruments) {
-		return NULL;
-	}
-	instruments[len] = 0;
-	memcpy(instruments, input, len);
-	char* tmp = instruments;
-	char* last_comma = 0;
-	char delimer[2] = {0};
-	delimer[0] = delim;
-
-	while (*tmp) {
-		if (delim == *tmp) {
-			count++;
-			last_comma = tmp;
-		}
-
-		tmp++;
-	}
-	// 如果分隔符不存在或者最后一个字符不是逗号分隔符，则计数加一
-	// a,b count = 2
-	// a,b, count = 2
-	if (!last_comma || last_comma < (instruments + strlen(instruments) - 1)) {
-		count++;
-	}
-
-	result = (char**)malloc(sizeof(char*) * count);
-
-	if (result) {
-		int idx = 0;
-
-		char* token = strtok(instruments, delimer);
-
-		while (token != NULL) {
-			*(result + idx++) = STRDUP(trim(token));
-
-			token = strtok(NULL, delimer);
-		}
-
-		outCount = count;
-	}
-
-	free(instruments);
-	return result;
-}
 
 int cmdVersion(void* api, const std::vector<std::string>& args) {
 	printf("Current API version is: %s\n", ((TDUserApi*)api)->GetApiVersion());
@@ -122,7 +51,7 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 
 			if (count != 2) {
 				fprintf(stderr, "Invalid args: %s\n", args[i].c_str());
-				continue;
+				return Command::CMDInvalidArgs;
 			}
 
 			if (strcmp(trim(results[0]), "ExchangeID") == 0) {
@@ -141,6 +70,7 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 			}
 
 			fprintf(stderr, "Invalid arg key word: %s\n", results[0]);
+			return Command::CMDInvalidArgs;
 		}
 
 		printf("ExchangeID, ProductID, InstrumentID, PriceTick, VolumeMultiple, UnderlyingIns, StrikePrice\n");
@@ -153,10 +83,15 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 		}
 	}
 	else if (obj == "order") {
+		std::string sysID = "";
+		std::string orderRef = "";
+
+		// TODO: parse orderRef & sysID in args
+
 		printf("Status, SysID, OrderRef, ExchangeID, InstrumentID, Direction, LimitPrice, "
 			"VolumeTotalOrigin, VolumeTraded, InsertDate, InsertTime, StatusMsg\n");
 
-		for (auto ord : apiIns->GetOrders()) {
+		for (auto ord : apiIns->GetOrders(orderRef, sysID)) {
 			printf("%c, %s, %s, %s, %s, %c, %.2lf, %d, %d, %s, %s, %s\n",
 				ord->OrderStatus, ord->OrderSysID, ord->OrderRef, 
 				ord->ExchangeID, ord->InstrumentID, 
@@ -251,17 +186,53 @@ int cmdOrderModify(void* api, const std::vector<std::string>& args) {
 }
 
 int cmdOrderCancel(void* api, const std::vector<std::string>& args) {
-	CThostFtdcInputOrderActionField ord = { 0 };
+
+	std::string sysIDs = "";
+	std::string orderRefs = "";
+
+	for (int i = 0; i < args.size(); i++) {
+		int count = 0;
+		char** results = split(args[i].c_str(), count, '=');
+
+		if (count != 2) {
+			fprintf(stderr, "Invalid args: %s", args[i].c_str());
+			return Command::CMDInvalidArgs;
+		}
+
+		if (strcmp(trim(results[0]), "SysID") == 0) {
+			sysIDs = results[1];
+			continue;
+		}
+
+		if (strcmp(trim(results[0]), "OrderRef") == 0) {
+			orderRefs = results[1];
+			continue;
+		}
+	}
 
 	auto apiIns = ((TDUserApi*)api);
 
-	CThostFtdcInputOrderActionField ordAction = { 0 };
-	strcpy_s(ordAction.BrokerID, apiIns->User.BrokerID);
-	strcpy_s(ordAction.InvestorID, apiIns->User.UserID);
-	strcpy_s(ordAction.UserID, apiIns->User.UserID);
-	ordAction.ActionFlag = THOST_FTDC_AF_Delete;
+	auto orderList = apiIns->GetOrders(orderRefs, sysIDs);
+	if (orderList.size() < 1) {
+		fprintf(stderr, "No order found.\n");
 
-	return apiIns->ReqOrderAction(&ord);
+		return Command::CMDInvalidArgs;
+	}
+
+	for (auto ord : orderList) {
+		CThostFtdcInputOrderActionField ordAction = { 0 };
+		strcpy_s(ordAction.BrokerID, ord->BrokerID);
+		strcpy_s(ordAction.InvestorID, ord->InvestorID);
+		strcpy_s(ordAction.UserID, ord->UserID);
+		strcpy_s(ordAction.OrderSysID, ord->OrderSysID);
+		strcpy_s(ordAction.ExchangeID, ord->ExchangeID);
+		strcpy_s(ordAction.InstrumentID, ord->InstrumentID);
+		ordAction.ActionFlag = THOST_FTDC_AF_Delete;
+
+		apiIns->ReqOrderAction(&ordAction);
+	}
+
+	return 0;
 }
 
 bool getValueBool(std::string value) {
@@ -341,7 +312,7 @@ int main(int argc, char* argv[]) {
 		"", cmdOrderModify };
 	CommandDefine orderCancelCommand = { 
 		"cancel", "Cancel an exist order.", 
-		"", cmdOrderCancel };
+		"cancel [SysID={id list}] [OrderRef={ref list}]", cmdOrderCancel };
 
 	cli.AddCommand(&versionCommand);
 	cli.AddExitCommand(&exitCommand);
