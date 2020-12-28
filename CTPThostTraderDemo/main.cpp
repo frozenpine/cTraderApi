@@ -261,10 +261,14 @@ bool getValueBool(std::string value) {
 int main(int argc, char* argv[]) {
 	printf("CTP API Version: %s impl by CPP.\n", TDUserApi::GetApiVersion());
 
-	char confFile[] = "setting.ini";
+	char* confFile = (char *)"setting.ini";
 
 	if (argc > 1) {
-		memcpy(confFile, argv[1], strlen(argv[1]) + 1);
+		if (strlen(argv[1]) > strlen(confFile)) {
+			confFile = (char*)calloc(strlen(argv[1]) + 1, sizeof(char));
+		}
+		
+		strncpy(confFile, argv[1], strlen(argv[1]));
 	}
 
 	// ¼ÓÔØÅäÖÃÎÄ¼þ
@@ -339,8 +343,7 @@ int main(int argc, char* argv[]) {
 	}
 	api->Init();
 
-	CThostFtdcReqAuthenticateField auth;
-	memset(&auth, 0, sizeof(auth));
+	CThostFtdcReqAuthenticateField auth = { 0 };
 	strncpy(auth.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType)-1);
 	strncpy(auth.UserID, userID, sizeof(TThostFtdcUserIDType)-1);
 	strncpy(auth.AppID, appID, sizeof(TThostFtdcAppIDType)-1);
@@ -348,32 +351,28 @@ int main(int argc, char* argv[]) {
 	api->ReqAuthenticate(&auth);
 	printf("Send authentication: %s, %s, %s\n", brokerID, userID, appID);
 
-	CThostFtdcReqUserLoginField login;
-	memset(&login, 0, sizeof(login));
+	CThostFtdcReqUserLoginField login = { 0 };
 	strncpy(login.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType)-1);
 	strncpy(login.UserID, userID, sizeof(TThostFtdcUserIDType)-1);
 	strncpy(login.Password, userPass, sizeof(TThostFtdcPasswordType)-1);
 	api->ReqUserLogin(&login);
 	printf("Send login: %s, %s\n", brokerID, userID);
 
-	CThostFtdcQryInvestorPositionField qryPos;
-	memset(&qryPos, 0, sizeof(qryPos));
+	CThostFtdcQryInvestorPositionField qryPos = { 0 };
 	/* not mandatory */
 	// strncpy(qryPos.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
 	// strncpy(qryPos.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
 	api->ReqQryInvestorPosition(&qryPos);
 	printf("Quering investor's position.\n");
 
-	CThostFtdcQryOrderField qryOdr;
-	memset(&qryOdr, 0, sizeof(qryOdr));
+	CThostFtdcQryOrderField qryOdr = { 0 };
 	/* not mandatory */
 	// strncpy(qryOdr.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
 	// strncpy(qryOdr.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
 	api->ReqQryOrder(&qryOdr);
 	printf("Quering invesot's orders.\n");
 
-	CThostFtdcQryInstrumentField qryIns;
-	memset(&qryIns, 0, sizeof(qryIns));
+	CThostFtdcQryInstrumentField qryIns = { 0 };
 	api->ReqQryInstrument(&qryIns);
 	printf("Quering instrument info.\n");
 
