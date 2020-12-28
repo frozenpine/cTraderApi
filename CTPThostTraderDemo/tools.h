@@ -6,12 +6,15 @@
 #include <ctype.h>
 #include <string.h>
 #include <memory.h>
+#include <float.h>
 
 #ifdef _WIN32
 #define STRDUP _strdup
 #else
 #define STRDUP strdup
 #endif
+
+#define NORMAL_PRICE(price) (price) == DBL_MAX? 0.0 : (price)
 
 char* ltrim(char* s);
 

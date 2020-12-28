@@ -1,9 +1,7 @@
 #include <stdio.h>
-#include <ctype.h>
 #include <csignal>
 #include <iostream>
 #include <regex>
-#include <float.h>
 #include <assert.h>
 
 #include "TDUserApi.h"
@@ -14,8 +12,6 @@
 const char flowPath[] = "flow/";
 const std::regex floatPattern("\\d*\\.?\\d+");
 const std::regex intPattern("\\d+");
-
-#define NORMAL_PRICE(price) (price) == DBL_MAX? 0.0 : (price)
 
 int cmdVersion(void* api, const std::vector<std::string>& args) {
 	printf("Current API version is: %s\n", ((TDUserApi*)api)->GetApiVersion());
@@ -208,6 +204,9 @@ int cmdOrderCancel(void* api, const std::vector<std::string>& args) {
 			orderRefs = results[1];
 			continue;
 		}
+
+		fprintf(stderr, "Invalid arg key word: %s\n", results[0]);
+		return Command::CMDInvalidArgs;
 	}
 
 	auto apiIns = ((TDUserApi*)api);

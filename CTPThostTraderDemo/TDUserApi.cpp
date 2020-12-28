@@ -1066,7 +1066,7 @@ void QueryCache::FinishQuery(int requestID) {
 	g_cond.notify_one();
 }
 
-bool QueryCache::CheckStatus(long long& timeout)
+bool QueryCache::chkStatus(long long& timeout)
 {
 	if (flag != QueryFlag::QryFinished) {
 		timeout = 0;
@@ -1087,7 +1087,7 @@ void QueryCache::CheckAndWait() {
 	
 	long long timeout;
 	
-	while (!CheckStatus(timeout)) {
+	while (!chkStatus(timeout)) {
 		if (timeout > 0) {
 			g_cond.wait_for(locker, std::chrono::milliseconds(timeout));
 		}
@@ -1101,7 +1101,7 @@ long long get_ms_ts()
 {
 	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
 		std::chrono::system_clock::now().time_since_epoch()
-		);
+	);
 
 	return ms.count();
 }

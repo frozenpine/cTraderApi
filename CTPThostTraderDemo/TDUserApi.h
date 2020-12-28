@@ -73,8 +73,8 @@ public:
 	}
 private:
 	long long lastQryTS;
-	int qryFreq;
-	int qryCount;
+	std::atomic<int> qryFreq;
+	std::atomic<int> qryCount;
 
 	std::mutex g_lock;
 	std::condition_variable g_cond;
@@ -84,6 +84,8 @@ private:
 	QueryFlag flag;
 
 	std::map<int, Query*> qryCache;
+
+	bool chkStatus(long long& timeout);
 public:
 	void SetQueryFreq(int freq) { qryFreq = freq; }
 
@@ -91,7 +93,6 @@ public:
 	void RedoQuery(int requestID);
 	void FinishQuery(int requestID);
 	
-	bool CheckStatus(long long& timeout);
 	void CheckAndWait();
 };
 
