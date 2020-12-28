@@ -2,6 +2,7 @@
 #include <chrono>
 
 #include "TDUserApi.h"
+#include "tools.h"
 
 TDUserApi::~TDUserApi()
 {
@@ -52,6 +53,11 @@ void TDUserApi::waitUntil(bool(TDUserApi::* checkFn)(), bool expect, int timeout
 std::vector<CThostFtdcInstrumentField*> TDUserApi::GetInstruments(std::string ExchangeID, std::string ProductID, std::string InstrumentID)
 {
 	return instrumentCache->GetInstrumentList(ExchangeID, ProductID, InstrumentID);
+}
+
+std::vector<CThostFtdcOrderField*> TDUserApi::GetOrders(std::string orderRef, std::string orderSysID)
+{
+	return orderCache->GetOrders(orderRef, orderSysID);
 }
 
 void TDUserApi::OnFrontConnected()
@@ -160,6 +166,22 @@ void TDUserApi::OnRspOrderAction(CThostFtdcInputOrderActionField* pInputOrderAct
 	setFlag(&responsed, true);
 }
 
+void TDUserApi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Settlement info confirm failed[%d]: %s\n", pRspInfo)) {
+		return;
+	}
+
+	if (NULL != pSettlementInfoConfirm) {
+		printf("Settlement info confirmed on: %s %s\n", 
+			pSettlementInfoConfirm->ConfirmDate, pSettlementInfoConfirm->ConfirmTime);
+	}
+
+	if (bIsLast) {
+		setFlag(&settlementConfirmed, true);
+	}
+}
+
 void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Query order failed[%d]: %s\n", pRspInfo)) {
@@ -169,12 +191,8 @@ void TDUserApi::OnRspQryOrder(CThostFtdcOrderField* pOrder, CThostFtdcRspInfoFie
 	}
 
 	if (NULL != pOrder) {
-		CThostFtdcOrderField* ord = new(CThostFtdcOrderField);
-		memcpy(ord, pOrder, sizeof(CThostFtdcOrderField));
-
-		orderDictByRef.insert_or_assign(pOrder->OrderRef, ord);
-		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, ord);
-
+		orderCache->InsertOrAssignOrder(pOrder);
+		
 		printf(
 			"Symbol[%s.%s] %s %s: Direction[%c] Offset[%s] %d@%.2f\n",
 			pOrder->ExchangeID, pOrder->InstrumentID, pOrder->OrderRef, pOrder->OrderSysID,
@@ -329,6 +347,62 @@ void TDUserApi::OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMa
 	}
 }
 
+void TDUserApi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField* pSettlementInfo, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Query settlement info failed[%d]: %s\n", pRspInfo)) {
+		queryCache->FinishQuery(nRequestID);
+
+		return;
+	}
+
+	if (NULL != pSettlementInfo) {
+		printf("Settlement info for %s.%s on %s\n",
+			pSettlementInfo->BrokerID, pSettlementInfo->InvestorID, pSettlementInfo->TradingDay);
+
+		printf("%s\n", pSettlementInfo->Content);
+	}
+
+	if (bIsLast) {
+		CThostFtdcSettlementInfoConfirmField confirm = { 0 };
+		memcpy(confirm.BrokerID, User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		memcpy(confirm.InvestorID, User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
+
+		ReqSettlementInfoConfirm(&confirm);
+
+		queryCache->FinishQuery(nRequestID);
+	}
+}
+
+void TDUserApi::OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Query settlment confirm failed[%d]: %s\n", pRspInfo)) {
+		queryCache->FinishQuery(nRequestID);
+
+		return;
+	}
+
+	if (NULL != pSettlementInfoConfirm) {
+		if (strlen(pSettlementInfoConfirm->ConfirmDate) > 0 && 
+			strlen(pSettlementInfoConfirm->ConfirmTime) > 0) {
+			setFlag(&settlementConfirmed, true);
+		}
+		else {
+			setFlag(&settlementConfirmed, false);
+		}
+	}
+
+	if (bIsLast) {
+		queryCache->FinishQuery(nRequestID);
+
+		CThostFtdcQrySettlementInfoField qry = { 0 };
+		memcpy(qry.BrokerID, User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		memcpy(qry.InvestorID, User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
+		memcpy(qry.TradingDay, GetTradingDay(), sizeof(TThostFtdcDateType) - 1);
+
+		ReqQrySettlementInfo(&qry);
+	}
+}
+
 void TDUserApi::OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	fprintf(stderr, "Request[%d] responsed Error[%d]: %s\n", nRequestID, pRspInfo->ErrorID, pRspInfo->ErrorMsg);
@@ -342,28 +416,14 @@ void TDUserApi::OnRspError(CThostFtdcRspInfoField* pRspInfo, int nRequestID, boo
 
 void TDUserApi::OnRtnOrder(CThostFtdcOrderField* pOrder)
 {
-	CThostFtdcOrderField* ord;
-	if (orderDictByRef.find(pOrder->OrderRef) == orderDictByRef.end() ||
-		orderDictBySysID.find(pOrder->OrderSysID) == orderDictBySysID.end()) {
-		ord = new(CThostFtdcOrderField);
-
-		orderDictByRef.insert_or_assign(pOrder->OrderRef, ord);
-		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, ord);
-	}
-	else {
-		ord = orderDictByRef.at(pOrder->OrderRef);
-		assert(ord == orderDictBySysID.at(pOrder->OrderSysID));
-	}
-
-	assert(NULL != ord);
-	memcpy(ord, pOrder, sizeof(CThostFtdcOrderField));
+	orderCache->InsertOrAssignOrder(pOrder);
 
 	printf(
 		"%s.%s @ %s %s: "
 		"OrderRef[%s], Status[%c], Direction[%s], Price[%.2lf], Volume[%d] Traded[%d] "
 		"Updated @ %s\n",
-		pOrder->ExchangeID, pOrder->InstrumentID, pOrder->InsertDate, pOrder->InsertTime,  
-		pOrder->OrderRef, pOrder->OrderStatus, 
+		pOrder->ExchangeID, pOrder->InstrumentID, pOrder->InsertDate, pOrder->InsertTime,
+		pOrder->OrderRef, pOrder->OrderStatus,
 		THOST_FTDC_D_Buy == pOrder->Direction ? "Buy" : "Sell",
 		pOrder->LimitPrice, pOrder->VolumeTotalOriginal, pOrder->VolumeTraded,
 		pOrder->UpdateTime
@@ -494,8 +554,6 @@ int TDUserApi::ReqUserLogin(CThostFtdcReqUserLoginField* pReqUserLoginField)
 {
 	waitUntil(&TDUserApi::checkAuthenticated, true);
 
-	// waitUntil(&TDUserApi::checkConnected, true);
-
 	login = false;
 
 	return pApi->ReqUserLogin(pReqUserLoginField, ++nRequestID);
@@ -522,21 +580,9 @@ int TDUserApi::ReqTradingAccountPasswordUpdate(CThostFtdcTradingAccountPasswordU
 	return pApi->ReqTradingAccountPasswordUpdate(pTradingAccountPasswordUpdate, ++nRequestID);
 }
 
-int TDUserApi::ReqUserAuthMethod(CThostFtdcReqUserAuthMethodField* pReqUserAuthMethod)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-
-	return 0;
-}
-
 int TDUserApi::ReqOrderInsert(CThostFtdcInputOrderField* pInputOrder)
 {
-	/*waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);*/
-
-	/*TThostFtdcOrderRefType orderRef = { 0 };
-	sprintf(orderRef, "%d", ++maxOrderRef);
-	strcpy_s(pInputOrder->OrderRef, orderRef);*/
+	waitUntil(&TDUserApi::checkUserLogin, true);
 	setFlag(&responsed, false);
 
 	return pApi->ReqOrderInsert(pInputOrder, ++nRequestID);
@@ -544,12 +590,24 @@ int TDUserApi::ReqOrderInsert(CThostFtdcInputOrderField* pInputOrder)
 
 int TDUserApi::ReqOrderAction(CThostFtdcInputOrderActionField* pInputOrderAction)
 {
-	/*waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);*/
+	waitUntil(&TDUserApi::checkUserLogin, true);
 
 	setFlag(&responsed, false);
 	
 	return pApi->ReqOrderAction(pInputOrderAction, ++nRequestID);
+}
+
+int TDUserApi::ReqSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField* pSettlementInfoConfirm)
+{
+	waitUntil(&TDUserApi::checkUserLogin, true);
+
+	if (checkSettlementConfirmed()) {
+		return 0;
+	}
+
+	printf("Send request to confirm settlement info.\n");
+
+	return pApi->ReqSettlementInfoConfirm(pSettlementInfoConfirm, ++nRequestID);
 }
 
 int TDUserApi::ReqQryOrder(CThostFtdcQryOrderField* pQryOrder)
@@ -559,51 +617,11 @@ int TDUserApi::ReqQryOrder(CThostFtdcQryOrderField* pQryOrder)
 	return queryCache->StartQuery(QueryFlag::QryOrder, pQryOrder);
 }
 
-int TDUserApi::ReqQryTrade(CThostFtdcQryTradeField* pQryTrade)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryTrade(pQryTrade, ++nRequestID);
-}
-
 int TDUserApi::ReqQryInvestorPosition(CThostFtdcQryInvestorPositionField* pQryInvestorPosition)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
 	
 	return queryCache->StartQuery(QueryFlag::QryPosition, pQryInvestorPosition);
-}
-
-int TDUserApi::ReqQryTradingAccount(CThostFtdcQryTradingAccountField* pQryTradingAccount)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryTradingAccount(pQryTradingAccount, ++nRequestID);
-}
-
-int TDUserApi::ReqQryInvestor(CThostFtdcQryInvestorField* pQryInvestor)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryInvestor(pQryInvestor, ++nRequestID);
-}
-
-int TDUserApi::ReqQryTradingCode(CThostFtdcQryTradingCodeField* pQryTradingCode)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryTradingCode(pQryTradingCode, ++nRequestID);
 }
 
 int TDUserApi::ReqQryInstrumentMarginRate(CThostFtdcQryInstrumentMarginRateField* pQryInstrumentMarginRate)
@@ -618,26 +636,6 @@ int TDUserApi::ReqQryInstrumentCommissionRate(CThostFtdcQryInstrumentCommissionR
 	waitUntil(&TDUserApi::checkUserLogin, true);
 
 	return queryCache->StartQuery(QueryFlag::QryCommissionRate, pQryInstrumentCommissionRate);
-}
-
-int TDUserApi::ReqQryExchange(CThostFtdcQryExchangeField* pQryExchange)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryExchange(pQryExchange, ++nRequestID);
-}
-
-int TDUserApi::ReqQryProduct(CThostFtdcQryProductField* pQryProduct)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryProduct(pQryProduct, ++nRequestID);
 }
 
 int TDUserApi::ReqQryInstrument(CThostFtdcQryInstrumentField* pQryInstrument)
@@ -657,11 +655,14 @@ int TDUserApi::ReqQryDepthMarketData(CThostFtdcQryDepthMarketDataField* pQryDept
 int TDUserApi::ReqQrySettlementInfo(CThostFtdcQrySettlementInfoField* pQrySettlementInfo)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	setFlag(&qryFinished, false);
+	if (checkSettlementConfirmed()) {
+		return 0;
+	}
 
-	return pApi->ReqQrySettlementInfo(pQrySettlementInfo, ++nRequestID);
+	printf("Send request to get settlement info.\n");
+
+	return queryCache->StartQuery(QueryFlag::QrySettlementInfo, pQrySettlementInfo);
 }
 
 int TDUserApi::ReqQryOptionInstrCommRate(CThostFtdcQryOptionInstrCommRateField* pQryOptionInstrCommRate)
@@ -677,41 +678,8 @@ int TDUserApi::ReqQryOptionInstrCommRate(CThostFtdcQryOptionInstrCommRateField* 
 int TDUserApi::ReqQrySettlementInfoConfirm(CThostFtdcQrySettlementInfoConfirmField* pQrySettlementInfoConfirm)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
 
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQrySettlementInfoConfirm(pQrySettlementInfoConfirm, ++nRequestID);
-}
-
-int TDUserApi::ReqQryInvestorPositionCombineDetail(CThostFtdcQryInvestorPositionCombineDetailField* pQryInvestorPositionCombineDetail)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryInvestorPositionCombineDetail(pQryInvestorPositionCombineDetail, ++nRequestID);
-}
-
-int TDUserApi::ReqQryExchangeMarginRate(CThostFtdcQryExchangeMarginRateField* pQryExchangeMarginRate)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryExchangeMarginRate(pQryExchangeMarginRate, ++nRequestID);
-}
-
-int TDUserApi::ReqQryExchangeMarginRateAdjust(CThostFtdcQryExchangeMarginRateAdjustField* pQryExchangeMarginRateAdjust)
-{
-	waitUntil(&TDUserApi::checkUserLogin, true);
-	waitUntil(&TDUserApi::checkQryStatus, true);
-
-	setFlag(&qryFinished, false);
-
-	return pApi->ReqQryExchangeMarginRateAdjust(pQryExchangeMarginRateAdjust, ++nRequestID);
+	return queryCache->StartQuery(QueryFlag::QrySettlementConfirm, pQrySettlementInfoConfirm);
 }
 
 bool InstrumentCache::InsertOrAssignInstrument(CThostFtdcInstrumentField* pInstrument)
@@ -942,6 +910,32 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 		case QueryFlag::QryFinished:
 			FinishQuery(requestID);
 			return 0;
+		case QueryFlag::QrySettlementInfo:
+			rtn = api->pApi->ReqQrySettlementInfo((CThostFtdcQrySettlementInfoField*)qry, requestID);
+			
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQrySettlementInfoField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQrySettlementInfoField));
+			}
+			else {
+				query->qry = qry;
+			}
+
+			break;
+		case QueryFlag::QrySettlementConfirm:
+			rtn = api->pApi->ReqQrySettlementInfoConfirm((CThostFtdcQrySettlementInfoConfirmField*)qry, requestID);
+
+			if (copyQry) {
+				query->qry = malloc(sizeof(CThostFtdcQrySettlementInfoConfirmField));
+				assert(query->qry != NULL);
+				memcpy(query->qry, qry, sizeof(CThostFtdcQrySettlementInfoConfirmField));
+			}
+			else {
+				query->qry = qry;
+			}
+
+			break;
 		case QueryFlag::QryAccount:
 			rtn = api->pApi->ReqQryTradingAccount((CThostFtdcQryTradingAccountField*)qry, requestID);
 			
@@ -1072,25 +1066,34 @@ void QueryCache::FinishQuery(int requestID) {
 	g_cond.notify_one();
 }
 
-bool QueryCache::CheckStatus()
+bool QueryCache::chkStatus(long long& timeout)
 {
 	if (flag != QueryFlag::QryFinished) {
+		timeout = 0;
 		return false;
 	}
 
-	long long ms = get_ms_ts();
-	if (ms - lastQryTS < 1000 && qryCount >= qryFreq) {
+	timeout = get_ms_ts() - lastQryTS;
+	if (timeout < 1000 && qryCount >= qryFreq) {
 		return false;
 	}
 
+	timeout = 0;
 	return true;
 }
 
 void QueryCache::CheckAndWait() {
 	std::unique_lock<std::mutex> locker(g_lock);
-
-	while (!CheckStatus()) {
-		g_cond.wait(locker);
+	
+	long long timeout;
+	
+	while (!chkStatus(timeout)) {
+		if (timeout > 0) {
+			g_cond.wait_for(locker, std::chrono::milliseconds(timeout));
+		}
+		else {
+			g_cond.wait(locker);
+		}
 	}
 }
 
@@ -1098,7 +1101,68 @@ long long get_ms_ts()
 {
 	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
 		std::chrono::system_clock::now().time_since_epoch()
-		);
+	);
 
 	return ms.count();
+}
+
+void OrderCache::InsertOrAssignOrder(CThostFtdcOrderField* pOrder)
+{
+	if (NULL == pOrder) {
+		return;
+	}
+
+	CThostFtdcOrderField* ord;
+
+	if (orderDictBySysID.find(pOrder->OrderSysID) == orderDictBySysID.end()) {
+		ord = new(CThostFtdcOrderField);
+
+		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, ord);
+		
+		if (strlen(pOrder->OrderRef) > 0) {
+			orderDictByRef.insert_or_assign(pOrder->OrderRef, ord);
+		}
+
+		orderList.push_back(ord);
+	}
+	else {
+		ord = orderDictBySysID.at(pOrder->OrderSysID);
+	}
+
+	assert(NULL != ord);
+	memcpy(ord, pOrder, sizeof(CThostFtdcOrderField));
+}
+
+std::vector<CThostFtdcOrderField*> OrderCache::GetOrders(std::string orderRef, std::string orderSysID)
+{
+	std::vector<CThostFtdcOrderField*> result;
+
+	if (orderSysID != "") {
+		int count = 0;
+		char** idList = split(orderSysID.c_str(), count);
+		
+		for (int i = 0; i < count; i++) {
+			if (orderDictBySysID.find(idList[i]) == orderDictBySysID.end()) {
+				continue;
+			}
+
+			result.push_back(orderDictBySysID.at(idList[i]));
+		}
+	} else if (orderRef != "") {
+		int count = 0;
+		char** refList = split(orderRef.c_str(), count);
+
+		for (int i = 0; i < count; i++) {
+			if (orderDictByRef.find(refList[i]) == orderDictByRef.end()) {
+				continue;
+			}
+
+			result.push_back(orderDictByRef.at(refList[i]));
+		}
+	}
+	else {
+		result = orderList;
+	}
+
+	return result;
 }
