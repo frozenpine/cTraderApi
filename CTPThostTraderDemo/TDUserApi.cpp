@@ -1,8 +1,7 @@
 #include <assert.h>
-#include <chrono>
 
-#include "TDUserApi.h"
 #include "tools.h"
+#include "TDUserApi.h"
 
 TDUserApi::~TDUserApi()
 {
@@ -58,6 +57,11 @@ std::vector<CThostFtdcInstrumentField*> TDUserApi::GetInstruments(std::string Ex
 std::vector<CThostFtdcOrderField*> TDUserApi::GetOrders(std::string orderRef, std::string orderSysID)
 {
 	return orderCache->GetOrders(orderRef, orderSysID);
+}
+
+std::vector<CThostFtdcInvestorPositionField*> TDUserApi::GetPositions(std::string ExchangeID, std::string ProductID, std::string InstrumentID)
+{
+	return positionCache->GetPositions(ExchangeID, ProductID, InstrumentID);
 }
 
 void TDUserApi::OnFrontConnected()
@@ -163,6 +167,21 @@ void TDUserApi::OnRspOrderAction(CThostFtdcInputOrderActionField* pInputOrderAct
 {
 	checkRspError("Request order action failed[%d]: %s\n", pRspInfo);
 
+	if (NULL != pInputOrderAction) {
+		printf(
+			"Action order is:\n"
+			"\tOrderRef: %s\n"
+			"\tActionRef: %d\n"
+			"\tInstrumentID: %s\n"
+			"\tPrice: %.2lf\n"
+			"\tVolumeChange: %d\n"
+			"\tActionFlag: %c\n",
+			pInputOrderAction->OrderRef, pInputOrderAction->OrderActionRef, 
+			pInputOrderAction->InstrumentID, pInputOrderAction->LimitPrice, 
+			pInputOrderAction->VolumeChange, pInputOrderAction->ActionFlag
+		);
+	}
+
 	setFlag(&responsed, true);
 }
 
@@ -218,22 +237,14 @@ void TDUserApi::OnRspQryInvestorPosition(
 		return;
 	}
 
-	if (NULL != pInvestorPosition) {
-		std::string symbol;
-		symbol.append(pInvestorPosition->ExchangeID);
-		symbol.append(".");
-		symbol.append(pInvestorPosition->InstrumentID);
+	if (NULL != pInvestorPosition && pInvestorPosition->Position > 0) {
+		positionCache->InsertOrAssign(pInvestorPosition);
 
-		CThostFtdcInvestorPositionField* pos = new(CThostFtdcInvestorPositionField);
-		memcpy(pos, pInvestorPosition, sizeof(CThostFtdcInvestorPositionField));
-
-		positionCache.insert_or_assign(symbol, pos);
-
-		printf(
+		/*printf(
 			"Symbol[%s.%s]: Direction[%c] YdPos[%d] Pos[%d]\n", 
 			pInvestorPosition->ExchangeID, pInvestorPosition->InstrumentID,
 			pInvestorPosition->PosiDirection, pInvestorPosition->YdPosition, pInvestorPosition->Position
-		);
+		);*/
 	}
 
 	if (bIsLast) {
@@ -312,6 +323,12 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 	}
 
 	if (NULL != pInstrument) { 
+		/*printf(
+			"[%s.%s]: PriceTick[%.2lf] VolumeMultiple[%d]\n", 
+			pInstrument->ExchangeID, pInstrument->InstrumentID, 
+			pInstrument->PriceTick, pInstrument->VolumeMultiple
+		);*/
+
 		instrumentCache->InsertOrAssignInstrument(pInstrument);
 	}
 
@@ -427,9 +444,21 @@ void TDUserApi::OnRtnOrder(CThostFtdcOrderField* pOrder)
 	);
 }
 
+void TDUserApi::OnRtnTrade(CThostFtdcTradeField* pTrade)
+{
+	if (NULL == pTrade) {
+		return;
+	}
+}
+
 void TDUserApi::OnErrRtnOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo)
 {
-	printf("Order rejected: %s\n", pRspInfo->ErrorMsg);
+	printf("Order insert rejected: %s\n", pRspInfo->ErrorMsg);
+}
+
+void TDUserApi::OnErrRtnOrderAction(CThostFtdcOrderActionField* pOrderAction, CThostFtdcRspInfoField* pRspInfo)
+{
+	printf("Order action rejected: %s\n", pRspInfo->ErrorMsg);
 }
 
 void TDUserApi::OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField* pInstrumentStatus)
@@ -677,508 +706,4 @@ int TDUserApi::ReqQrySettlementInfoConfirm(CThostFtdcQrySettlementInfoConfirmFie
 	waitUntil(&TDUserApi::checkUserLogin, true);
 
 	return queryCache->StartQuery(QueryFlag::QrySettlementConfirm, pQrySettlementInfoConfirm);
-}
-
-bool InstrumentCache::InsertOrAssignInstrument(CThostFtdcInstrumentField* pInstrument)
-{
-	if (NULL == pInstrument) { return false; }
-
-	CThostFtdcInstrumentField* ins;
-
-	if (instrumentDict.find(pInstrument->InstrumentID) == instrumentDict.end()) {
-		ins = new(CThostFtdcInstrumentField);
-		instrumentDict.insert_or_assign(ins->InstrumentID, ins);
-	}
-	else {
-		ins = instrumentDict.at(pInstrument->InstrumentID);
-	}
-
-	assert(ins != NULL);
-	memcpy(ins, pInstrument, sizeof(CThostFtdcInstrumentField));
-	return true;
-}
-
-bool InstrumentCache::InsertOrAssignMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData)
-{
-	if (NULL == pDepthMarketData) {
-		return false;
-	}
-
-	CThostFtdcDepthMarketDataField* md;
-
-	if (marketDataDict.find(pDepthMarketData->InstrumentID) == marketDataDict.end()) {
-		md = new(CThostFtdcDepthMarketDataField);
-		marketDataDict.insert_or_assign(pDepthMarketData->InstrumentID, md);
-	}
-	else {
-		md = marketDataDict.at(pDepthMarketData->InstrumentID);
-	}
-
-	assert(md != NULL);
-	memcpy(md, pDepthMarketData, sizeof(CThostFtdcDepthMarketDataField));
-	return true;
-}
-
-CThostFtdcInstrumentField* InstrumentCache::getNextInstrument(int& idx)
-{
-	if (idx >= instrumentList.size()) {
-		return NULL;
-	}
-
-	return instrumentList[idx++];
-}
-
-bool InstrumentCache::InsertOrAssignMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate)
-{
-	if (NULL == pInstrumentMarginRate) {
-		return false;
-	}
-
-	CThostFtdcInstrumentMarginRateField* marginRate;
-
-	if (marginRateDict.find(pInstrumentMarginRate->InstrumentID) == marginRateDict.end()) {
-		marginRate = new(CThostFtdcInstrumentMarginRateField);
-		marginRateDict.insert_or_assign(pInstrumentMarginRate->InstrumentID, marginRate);
-	}
-	else {
-		marginRate = marginRateDict.at(pInstrumentMarginRate->InstrumentID);
-	}
-
-	assert(marginRate != NULL);
-	memcpy(marginRate, pInstrumentMarginRate, sizeof(CThostFtdcInstrumentMarginRateField));
-	return true;
-}
-
-bool InstrumentCache::InsertOrAssignCommRate(CThostFtdcInstrumentCommissionRateField* pInstrumentCommissionRate)
-{
-	if (NULL == pInstrumentCommissionRate) {
-		return false;
-	}
-
-	CThostFtdcInstrumentCommissionRateField* commRate;
-
-	if (commRateDict.find(pInstrumentCommissionRate->InstrumentID) == commRateDict.end()) {
-		commRate = new(CThostFtdcInstrumentCommissionRateField);
-		commRateDict.insert_or_assign(pInstrumentCommissionRate->InstrumentID, commRate);
-	}
-	else {
-		commRate = commRateDict.at(pInstrumentCommissionRate->InstrumentID);
-	}
-
-	assert(commRate != NULL);
-	memcpy(commRate, pInstrumentCommissionRate, sizeof(CThostFtdcInstrumentCommissionRateField));
-	return true;
-}
-
-void InstrumentCache::QueryNextMarginRate()
-{
-	assert(api != NULL);
-
-	CThostFtdcInstrumentField* ins = getNextInstrument(marginRateQryIdx);
-
-	while (NULL != ins) {
-		// 目前仅支持期货合约的保证金查询
-		// TODO： 支持其他类型的合约保证金查询
-		if (marginRateDict.find(ins->InstrumentID) == marginRateDict.end() &&
-			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
-
-			CThostFtdcQryInstrumentMarginRateField qryMargin = { 0 };
-			strncpy(qryMargin.BrokerID, api->User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-			strncpy(qryMargin.InvestorID, api->User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
-			strncpy(qryMargin.InstrumentID, ins->InstrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
-			qryMargin.HedgeFlag = THOST_FTDC_HF_Speculation;
-
-			api->ReqQryInstrumentMarginRate(&qryMargin);
-
-			return;
-		}
-
-		ins = getNextInstrument(marginRateQryIdx);
-	}
-
-	api->queryAllMarginRate = false;
-	marginRateQryIdx = 0;
-
-	printf("Quering instrument margin rate finisehd.\n");
-}
-
-void InstrumentCache::QueryNextCommRate()
-{
-	assert(api != NULL);
-
-	CThostFtdcInstrumentField* ins = getNextInstrument(commRateQryIdx);
-
-	while (NULL != ins) {
-		// 目前仅支持期货合约的手续费查询
-		// TODO： 支持其他类型的合约手续费查询
-		if (commRateDict.find(ins->InstrumentID) == commRateDict.end() &&
-			THOST_FTDC_APC_FutureSingle == ins->ProductClass) {
-
-			CThostFtdcQryInstrumentCommissionRateField qryComm = { 0 };
-			strncpy(qryComm.BrokerID, api->User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-			strncpy(qryComm.InvestorID, api->User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
-			strncpy(qryComm.InstrumentID, ins->InstrumentID, sizeof(TThostFtdcInstrumentIDType) - 1);
-
-			api->ReqQryInstrumentCommissionRate(&qryComm);
-
-			return;
-		}
-
-		ins = getNextInstrument(commRateQryIdx);
-	}
-
-	api->queryAllCommRate = false;
-	commRateQryIdx = 0;
-
-	printf("Quering instrument comm rate finished.\n");
-}
-
-void InstrumentCache::BuildInstrumentList()
-{
-	if (instrumentList.size() > 0) {
-		instrumentList.clear();
-	}
-
-	for (auto &iter : instrumentDict) {
-		instrumentList.push_back(iter.second);
-	}
-}
-
-std::vector<CThostFtdcInstrumentField*> InstrumentCache::GetInstrumentList(std::string ExchangeID, std::string ProductID, std::string InstrumentID)
-{
-	std::vector<CThostFtdcInstrumentField*> result;
-
-	if (InstrumentID != "") {
-		auto ins = instrumentDict.at(InstrumentID);
-		result.push_back(ins);
-
-		return result;
-	}
-	
-	for (auto ins : instrumentList) {
-		if ((ExchangeID != "" && ins->ExchangeID != ExchangeID) ||
-			(ProductID != "" && ins->ProductID != ProductID)) {
-			continue;
-		}
-
-		result.push_back(ins);
-	}
-
-	return result;
-}
-
-void QueryCache::RedoQuery(int requestID)
-{
-	if (qryCache.find(requestID) == qryCache.end()) {
-		fprintf(stderr, "Request[%d] not in query cache.\n", requestID);
-		return;
-	}
-	
-	flag = QueryFlag::QryFinished;
-	auto qry = qryCache.at(requestID);
-	qryCount -= int(qryCache.erase(requestID));
-	if (qryCount < 0) {
-		qryCount = 0;
-	}
-	g_cond.notify_one();
-	
-	StartQuery(qry->flag, qry->qry, false);
-	delete qry;
-}
-
-int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
-{
-	assert(api != NULL);
-
-	CheckAndWait();
-
-	lastQryTS = get_ms_ts();
-	this->flag = flag;
-	int requestID = ++api->nRequestID;
-
-	int rtn = 0;
-	Query* query = new(Query);
-	query->flag = flag;
-
-	while (true) {
-		switch (flag)
-		{
-		case QueryFlag::QryFinished:
-			FinishQuery(requestID);
-			return 0;
-		case QueryFlag::QrySettlementInfo:
-			rtn = api->pApi->ReqQrySettlementInfo((CThostFtdcQrySettlementInfoField*)qry, requestID);
-			
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQrySettlementInfoField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQrySettlementInfoField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		case QueryFlag::QrySettlementConfirm:
-			rtn = api->pApi->ReqQrySettlementInfoConfirm((CThostFtdcQrySettlementInfoConfirmField*)qry, requestID);
-
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQrySettlementInfoConfirmField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQrySettlementInfoConfirmField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		case QueryFlag::QryAccount:
-			rtn = api->pApi->ReqQryTradingAccount((CThostFtdcQryTradingAccountField*)qry, requestID);
-			
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQryTradingAccountField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQryTradingAccountField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		case QueryFlag::QryOrder:
-			rtn = api->pApi->ReqQryOrder((CThostFtdcQryOrderField*)qry, requestID);
-			
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQryOrderField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQryOrderField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		case QueryFlag::QryPosition:
-			rtn = api->pApi->ReqQryInvestorPosition((CThostFtdcQryInvestorPositionField*)qry, requestID);
-			
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQryInvestorPositionField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQryInvestorPositionField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		case QueryFlag::QryExecution:
-			break;
-		case QueryFlag::QryInstrument:
-			rtn = api->pApi->ReqQryInstrument((CThostFtdcQryInstrumentField*)qry, requestID);
-
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQryInstrumentField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQryInstrumentField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		case QueryFlag::QryMarginRate:
-		{
-			auto pQryInstrumentMarginRate = (CThostFtdcQryInstrumentMarginRateField*)qry;
-			printf("Quering instrument[%s] margin rate.\n", pQryInstrumentMarginRate->InstrumentID);
-			rtn = api->pApi->ReqQryInstrumentMarginRate(pQryInstrumentMarginRate, requestID);
-
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQryInstrumentMarginRateField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQryInstrumentMarginRateField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		}
-		case QueryFlag::QryCommissionRate:
-		{
-			auto pQryInstrumentCommissionRate = (CThostFtdcQryInstrumentCommissionRateField*)qry;
-			printf("Quering instrument[%s] comm rate.\n", pQryInstrumentCommissionRate->InstrumentID);
-			rtn = api->pApi->ReqQryInstrumentCommissionRate(pQryInstrumentCommissionRate, requestID);
-
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQryInstrumentCommissionRateField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQryInstrumentCommissionRateField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		}
-		case QueryFlag::QryMarketData:
-			rtn = api->pApi->ReqQryDepthMarketData((CThostFtdcQryDepthMarketDataField*)qry, requestID);
-
-			if (copyQry) {
-				query->qry = malloc(sizeof(CThostFtdcQryDepthMarketDataField));
-				assert(query->qry != NULL);
-				memcpy(query->qry, qry, sizeof(CThostFtdcQryDepthMarketDataField));
-			}
-			else {
-				query->qry = qry;
-			}
-
-			break;
-		default:
-			fprintf(stderr, "Invalid query flag: %x\n", flag);
-			return 255;
-		}
-
-		if (0 == rtn) {
-			break;
-		}
-		
-		if (-2 == rtn){
-			fprintf(stderr, "Inflight request exceeded.\n");
-		}
-		else if (-3 == rtn) {
-			fprintf(stderr, "Flow control exceeded.\n");
-		}
-		else {
-			fprintf(stderr, "Unknown request rtn code: %d\n", rtn);
-			return rtn;
-		}
-
-		SLEEP(500);
-	}
-
-	qryCache.insert_or_assign(requestID, query);
-	qryCount++;
-
-	return rtn;
-}
-
-void QueryCache::FinishQuery(int requestID) {
-	if (qryCache.find(requestID) == qryCache.end()) {
-		return;
-	}
-
-	auto qry = qryCache.at(requestID);
-	free(qry->qry);
-	delete qry;
-
-	qryCount -= int(qryCache.erase(requestID));
-	if (qryCount < 0) {
-		qryCount = 0;
-	}
-	
-	flag = QueryFlag::QryFinished;
-	g_cond.notify_one();
-}
-
-bool QueryCache::chkStatus(long long& timeout)
-{
-	if (flag != QueryFlag::QryFinished) {
-		// fprintf(stderr, "Last query not finished.\n");
-		timeout = 0;
-		return false;
-	}
-
-	timeout = get_ms_ts() - lastQryTS;
-	if (timeout < 1000 && qryCount >= qryFreq) {
-		// fprintf(stderr, "Query frequence exceeded.\n");
-		return false;
-	}
-
-	timeout = 0;
-	return true;
-}
-
-void QueryCache::CheckAndWait() {
-	std::unique_lock<std::mutex> locker(g_lock);
-	
-	long long timeout;
-	
-	while (!chkStatus(timeout)) {
-		if (timeout > 0) {
-			g_cond.wait_for(locker, std::chrono::milliseconds(timeout));
-		}
-		else {
-			g_cond.wait(locker);
-		}
-	}
-}
-
-long long get_ms_ts()
-{
-	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-		std::chrono::system_clock::now().time_since_epoch()
-	);
-
-	return ms.count();
-}
-
-void OrderCache::InsertOrAssignOrder(CThostFtdcOrderField* pOrder)
-{
-	if (NULL == pOrder) {
-		return;
-	}
-
-	CThostFtdcOrderField* ord;
-
-	if (orderDictBySysID.find(pOrder->OrderSysID) == orderDictBySysID.end()) {
-		ord = new(CThostFtdcOrderField);
-
-		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, ord);
-		
-		if (strlen(pOrder->OrderRef) > 0) {
-			orderDictByRef.insert_or_assign(pOrder->OrderRef, ord);
-		}
-
-		orderList.push_back(ord);
-	}
-	else {
-		ord = orderDictBySysID.at(pOrder->OrderSysID);
-	}
-
-	assert(NULL != ord);
-	memcpy(ord, pOrder, sizeof(CThostFtdcOrderField));
-}
-
-std::vector<CThostFtdcOrderField*> OrderCache::GetOrders(std::string orderRef, std::string orderSysID)
-{
-	std::vector<CThostFtdcOrderField*> result;
-
-	if (orderSysID != "") {
-		int count = 0;
-		char** idList = split(orderSysID.c_str(), count);
-		
-		for (int i = 0; i < count; i++) {
-			if (orderDictBySysID.find(idList[i]) == orderDictBySysID.end()) {
-				continue;
-			}
-
-			result.push_back(orderDictBySysID.at(idList[i]));
-		}
-	} else if (orderRef != "") {
-		int count = 0;
-		char** refList = split(orderRef.c_str(), count);
-
-		for (int i = 0; i < count; i++) {
-			if (orderDictByRef.find(refList[i]) == orderDictByRef.end()) {
-				continue;
-			}
-
-			result.push_back(orderDictByRef.at(refList[i]));
-		}
-	}
-	else {
-		result = orderList;
-	}
-
-	return result;
 }

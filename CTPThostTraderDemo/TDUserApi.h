@@ -1,155 +1,10 @@
 #pragma once
 
-#include <string.h>
-#include <atomic>
-#include <mutex>
-#include <map>
-#include <vector>
-#include <string>
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <direct.h>
-#define SLEEP(ms) Sleep((ms))
-#define MKDIR(path) _mkdir((path))
-#else
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#define SLEEP(ms) usleep((ms)*1000)
-#define MKDIR(path) mkdir((path), S_IRUSR|S_IWUSR|S_IRGRP)
-#endif
-
 #include "ThostFtdcTraderApi.h"
-
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
-long long get_ms_ts();
-
-class TDUserApi;
-
-enum class QueryFlag {
-	QryFinished = 0,
-	QrySettlementInfo,
-	QrySettlementConfirm,
-	QryAccount,
-	QryOrder,
-	QryPosition,
-	QryExecution,
-	QryInstrument,
-	QryMarginRate,
-	QryCommissionRate,
-	QryMarketData,
-};
-
-struct Query {
-	enum class QueryFlag flag;
-	void* qry;
-};
-
-class QueryCache
-{
-public:
-	QueryCache() {
-		lastQryTS = 0;
-		qryFreq = 3;
-		qryCount = 0;
-
-		flag = QueryFlag::QryFinished;
-
-		api = NULL;
-	};
-	QueryCache(TDUserApi *api) {
-		new (this)QueryCache();
-
-		this->api = api;
-	};
-	QueryCache(TDUserApi* api, int qryFreq) {
-		new (this)QueryCache(api);
-
-		this->qryFreq = qryFreq;
-	}
-private:
-	long long lastQryTS;
-	std::atomic<int> qryFreq;
-	std::atomic<int> qryCount;
-
-	std::mutex g_lock;
-	std::condition_variable g_cond;
-
-	TDUserApi* api;
-
-	QueryFlag flag;
-
-	std::map<int, Query*> qryCache;
-
-	bool chkStatus(long long& timeout);
-public:
-	void SetQueryFreq(int freq) { qryFreq = freq; }
-
-	int StartQuery(QueryFlag flag, void* qry, bool copyQry=true);
-	void RedoQuery(int requestID);
-	void FinishQuery(int requestID);
-	
-	void CheckAndWait();
-};
-
-class InstrumentCache
-{
-public:
-	InstrumentCache() {
-		marginRateQryIdx = 0;
-		commRateQryIdx = 0;
-		api = NULL;
-	};
-	InstrumentCache(TDUserApi* api) {
-		new (this)InstrumentCache();
-
-		this->api = api;
-	};
-private:
-	TDUserApi* api;
-	int marginRateQryIdx;
-	int commRateQryIdx;
-	std::map<std::string, CThostFtdcInstrumentField*> instrumentDict;
-	std::map<std::string, CThostFtdcDepthMarketDataField*> marketDataDict;
-	std::map<std::string, CThostFtdcInstrumentMarginRateField*> marginRateDict;
-	std::map<std::string, CThostFtdcInstrumentCommissionRateField*> commRateDict;
-	std::vector<CThostFtdcInstrumentField*> instrumentList;
-
-	CThostFtdcInstrumentField* getNextInstrument(int& idx);
-public:
-	bool InsertOrAssignInstrument(CThostFtdcInstrumentField* pInstrument);
-	bool InsertOrAssignMarketData(CThostFtdcDepthMarketDataField* pDepthMarketData);
-	
-	bool InsertOrAssignMarginRate(CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate);
-	bool InsertOrAssignCommRate(CThostFtdcInstrumentCommissionRateField* commRate);
-
-	void QueryNextMarginRate();
-	void QueryNextCommRate();
-
-	void BuildInstrumentList();
-
-	std::vector<CThostFtdcInstrumentField*> GetInstrumentList(
-		std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = ""
-	);
-};
-
-class OrderCache
-{
-public:
-	OrderCache() {};
-private:
-	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
-	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
-	std::vector<CThostFtdcOrderField*> orderList;
-public:
-	void InsertOrAssignOrder(CThostFtdcOrderField* pOrder);
-
-	std::vector<CThostFtdcOrderField*> GetOrders(std::string orderRef = "", std::string orderSysID = "");
-};
+#include "QueryCache.h"
+#include "InstrumentCache.h"
+#include "OrderCache.h"
+#include "PositionCache.h"
 
 class TDUserApi : public CThostFtdcTraderSpi
 {
@@ -168,7 +23,8 @@ public:
 
 		instrumentCache = new InstrumentCache(this);
 		queryCache = new QueryCache(this);
-		orderCache = new(OrderCache);
+		orderCache = new OrderCache(this);
+		positionCache = new PositionCache;
 	};
 
 	friend class QueryCache;
@@ -193,7 +49,7 @@ private:
 	InstrumentCache* instrumentCache;
 	QueryCache* queryCache;
 	OrderCache* orderCache;
-	std::map<std::string, CThostFtdcInvestorPositionField*> positionCache;
+	PositionCache* positionCache;
 
 	bool checkAPIInitialized() { return pApi != NULL; };
 	bool checkConnected() { return connected; };
@@ -218,7 +74,7 @@ public:
 	void WaitQueryFinished() { queryCache->CheckAndWait(); };
 	std::vector<CThostFtdcInstrumentField*> GetInstruments(std::string ExchangeID="", std::string ProductID="", std::string InstrumentID="");
 	std::vector<CThostFtdcOrderField*> GetOrders(std::string orderRef = "", std::string orderSysID = "");
-	std::vector<CThostFtdcInvestorPositionField*> GetPositions(std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = "") {};
+	std::vector<CThostFtdcInvestorPositionField*> GetPositions(std::string ExchangeID = "", std::string ProductID = "", std::string InstrumentID = "");
 public:
 	// 按合约查询回报顺序依次查询所有合约保证金率
 	void QueryMarginRateAll();
@@ -457,13 +313,13 @@ public:
 	virtual void OnRtnOrder(CThostFtdcOrderField* pOrder);
 
 	///成交通知
-	virtual void OnRtnTrade(CThostFtdcTradeField* pTrade) {};
+	virtual void OnRtnTrade(CThostFtdcTradeField* pTrade);
 
 	///报单录入错误回报
 	virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField* pInputOrder, CThostFtdcRspInfoField* pRspInfo);
 
 	///报单操作错误回报
-	virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField* pOrderAction, CThostFtdcRspInfoField* pRspInfo) {};
+	virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField* pOrderAction, CThostFtdcRspInfoField* pRspInfo);
 
 	///合约交易状态通知
 	virtual void OnRtnInstrumentStatus(CThostFtdcInstrumentStatusField* pInstrumentStatus);

@@ -65,6 +65,18 @@
     <ClInclude Include="tools.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="QueryCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InstrumentCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="OrderCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PositionCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="error.xml">
@@ -82,6 +94,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="tools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QueryCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="InstrumentCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="OrderCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PositionCache.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
