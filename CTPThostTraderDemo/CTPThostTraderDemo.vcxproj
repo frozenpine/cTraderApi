@@ -165,6 +165,10 @@
   <ItemGroup>
     <ClInclude Include="Command.h" />
     <ClInclude Include="ini.h" />
+    <ClInclude Include="InstrumentCache.h" />
+    <ClInclude Include="OrderCache.h" />
+    <ClInclude Include="PositionCache.h" />
+    <ClInclude Include="QueryCache.h" />
     <ClInclude Include="ThostFtdcMdApi.h" />
     <ClInclude Include="ThostFtdcTraderApi.h" />
     <ClInclude Include="ThostFtdcUserApiDataType.h" />
@@ -177,7 +181,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Command.cpp" />
+    <ClCompile Include="InstrumentCache.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OrderCache.cpp" />
+    <ClCompile Include="PositionCache.cpp" />
+    <ClCompile Include="QueryCache.cpp" />
     <ClCompile Include="TDUserApi.cpp" />
     <ClCompile Include="tools.cpp" />
   </ItemGroup>

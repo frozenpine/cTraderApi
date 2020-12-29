@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "tools.h"
 
 char* ltrim(char* s)
@@ -69,4 +71,13 @@ char** split(const char* input, int& outCount, char delim)
 
 	free(instruments);
 	return result;
+}
+
+long long get_ms_ts()
+{
+	std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::system_clock::now().time_since_epoch()
+		);
+
+	return ms.count();
 }

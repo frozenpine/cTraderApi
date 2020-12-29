@@ -4,10 +4,14 @@
 #include <regex>
 #include <assert.h>
 
-#include "TDUserApi.h"
-#include "ini.h"
-#include "Command.h"
 #include "tools.h"
+#include "ini.h"
+#include "TDUserApi.h"
+#include "Command.h"
+
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 const char flowPath[] = "flow/";
 const std::regex floatPattern("\\d*\\.?\\d+");
@@ -97,7 +101,20 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 		}
 	}
 	else if (obj == "position") {
+		std::string ExchangeID = "";
+		std::string ProductID = "";
+		std::string InstrumentID = "";
 
+		// TODO: parse args
+
+		printf("ExchangeID, InstrumentID, Direction, YdPos, Pos\n");
+
+		for (auto pos : apiIns->GetPositions(ExchangeID, ProductID, InstrumentID)) {
+			printf("%s, %s, %c, %d, %d\n",
+				pos->ExchangeID, pos->InstrumentID, pos->PosiDirection,
+				pos->YdPosition, pos->Position
+			);
+		}
 	}
 	else {
 		fprintf(stderr, "invalid show instance: %s", obj.c_str());
@@ -120,6 +137,8 @@ int cmdOrderNew(void* api, const std::vector<std::string>& args) {
 		fprintf(stderr, "lack of args: instrumentid direction price volume\n");
 		return Command::CMDInvalidArgs;
 	}
+
+	auto apiIns = ((TDUserApi*)api);
 
 	TThostFtdcDirectionType direction;
 	if (args[1] == "0" || args[1] == "buy") {
@@ -145,9 +164,28 @@ int cmdOrderNew(void* api, const std::vector<std::string>& args) {
 	}
 	int volume = atoi(args[3].c_str());
 
-	CThostFtdcInputOrderField ord = { 0 };
+	// 
+	char comboOffsetFlag = THOST_FTDC_OF_Open;
+	if (args.size() == 5 && args[4] == "close") {
+		auto insList = apiIns->GetInstruments("", "", args[0]);
 
-	auto apiIns = ((TDUserApi*)api);
+		if (insList.size() == 1 && (
+				strcmp(insList[0]->ExchangeID, "SHFE") == 0 || 
+				strcmp(insList[0]->ExchangeID, "INE") == 0)) {
+			auto posList = apiIns->GetPositions("", "", args[0]);
+			if (posList.size() == 1 && (posList[0]->Position - posList[0]->YdPosition) > 0) {
+				comboOffsetFlag = THOST_FTDC_OF_CloseToday;
+			}
+			else {
+				comboOffsetFlag = THOST_FTDC_OF_Close;
+			}
+		}
+		else {
+			comboOffsetFlag = THOST_FTDC_OF_Close;
+		}
+	}
+
+	CThostFtdcInputOrderField ord = { 0 };
 	
 	/* mandatory fields for a new order */
 	strcpy_s(ord.BrokerID, apiIns->User.BrokerID);
@@ -160,7 +198,7 @@ int cmdOrderNew(void* api, const std::vector<std::string>& args) {
 	ord.LimitPrice = price;
 	ord.VolumeTotalOriginal = volume;
 	
-	ord.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
+	ord.CombOffsetFlag[0] = comboOffsetFlag;
 	ord.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;	
 	ord.StopPrice = 0;
 	ord.TimeCondition = THOST_FTDC_TC_GFD;
@@ -311,7 +349,7 @@ int main(int argc, char* argv[]) {
 		"show {instrument|order|position} [args]", cmdShow };
 	CommandDefine orderNewCommand = { 
 		"new", "Make a limited price order.", 
-		"new {instrumentid} {direction} {price} {volume}", cmdOrderNew };
+		"new {instrumentid} {direction} {price} {volume} [close]", cmdOrderNew };
 	CommandDefine orderModifyCommand = { 
 		"modify", "Modify an exist order.", 
 		"", cmdOrderModify };
@@ -326,7 +364,7 @@ int main(int argc, char* argv[]) {
 	cli.AddCommand(&orderModifyCommand);
 	cli.AddCommand(&orderCancelCommand);
 
-	// cli.RegisterPostCommand(cmdPostWait);
+	cli.RegisterPostCommand(cmdPostWait);
 
 	api->CreateFtdcTraderApi(flowPath);
 	api->SubscribePrivateTopic(THOST_TERT_QUICK);
