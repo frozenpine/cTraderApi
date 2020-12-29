@@ -1,8 +1,11 @@
 #include <assert.h>
 #include <chrono>
+#include <string>
 
 #include "TDUserApi.h"
 #include "tools.h"
+
+#define JOIN_REF(session, front, ref) (session) + "." + (front) + "." + (ref)
 
 TDUserApi::~TDUserApi()
 {
@@ -218,7 +221,7 @@ void TDUserApi::OnRspQryInvestorPosition(
 		return;
 	}
 
-	if (NULL != pInvestorPosition) {
+	if (NULL != pInvestorPosition && pInvestorPosition->Position > 0) {
 		std::string symbol;
 		symbol.append(pInvestorPosition->ExchangeID);
 		symbol.append(".");
@@ -1128,21 +1131,44 @@ void OrderCache::InsertOrAssignOrder(CThostFtdcOrderField* pOrder)
 		return;
 	}
 
+	std::string sysID = ltrim(pOrder->OrderSysID);
+	std::string orderRef = ltrim(pOrder->OrderRef);
+	std::string sessionID = std::to_string(pOrder->SessionID);
+	std::string frontID = std::to_string(pOrder->FrontID);
+
 	CThostFtdcOrderField* ord;
 
-	if (orderDictBySysID.find(pOrder->OrderSysID) == orderDictBySysID.end()) {
-		ord = new(CThostFtdcOrderField);
+	if (sysID != "") {
+		if (orderDictBySysID.find(sysID) == orderDictBySysID.end()) {
+			ord = new(CThostFtdcOrderField);
 
-		orderDictBySysID.insert_or_assign(pOrder->OrderSysID, ord);
-		
-		if (strlen(pOrder->OrderRef) > 0) {
-			orderDictByRef.insert_or_assign(pOrder->OrderRef, ord);
+			orderDictBySysID.insert_or_assign(sysID, ord);
+
+			if (orderRef != "") {				
+				orderDictByRef.insert_or_assign(JOIN_REF(sessionID, frontID, orderRef), ord);
+			}
+
+			orderList.push_back(ord);
 		}
+		else {
+			ord = orderDictBySysID.at(sysID);
+		}
+	}
+	else if (orderRef != "") {
+		std::string ref = JOIN_REF(sessionID, frontID, orderRef);
+		if (orderDictByRef.find(ref) == orderDictByRef.end()) {
+			ord = new(CThostFtdcOrderField);
 
-		orderList.push_back(ord);
+			orderDictByRef.insert_or_assign(ref, ord);
+
+			orderList.push_back(ord);
+		}
+		else {
+			ord = orderDictByRef.at(ref);
+		}
 	}
 	else {
-		ord = orderDictBySysID.at(pOrder->OrderSysID);
+		return;
 	}
 
 	assert(NULL != ord);
@@ -1169,11 +1195,15 @@ std::vector<CThostFtdcOrderField*> OrderCache::GetOrders(std::string orderRef, s
 		char** refList = split(orderRef.c_str(), count);
 
 		for (int i = 0; i < count; i++) {
-			if (orderDictByRef.find(refList[i]) == orderDictByRef.end()) {
+			std::string sessionID = std::to_string(api->User.SessionID);
+			std::string frontID = std::to_string(api->User.FrontID);
+			std::string ref = JOIN_REF(sessionID, frontID, refList[i]);
+			
+			if (orderDictByRef.find(ref) == orderDictByRef.end()) {
 				continue;
 			}
 
-			result.push_back(orderDictByRef.at(refList[i]));
+			result.push_back(orderDictByRef.at(ref));
 		}
 	}
 	else {

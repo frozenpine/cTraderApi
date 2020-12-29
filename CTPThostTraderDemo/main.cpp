@@ -326,7 +326,7 @@ int main(int argc, char* argv[]) {
 	cli.AddCommand(&orderModifyCommand);
 	cli.AddCommand(&orderCancelCommand);
 
-	cli.RegisterPostCommand(cmdPostWait);
+	// cli.RegisterPostCommand(cmdPostWait);
 
 	api->CreateFtdcTraderApi(flowPath);
 	api->SubscribePrivateTopic(THOST_TERT_QUICK);

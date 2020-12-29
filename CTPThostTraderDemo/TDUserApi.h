@@ -140,8 +140,13 @@ public:
 class OrderCache
 {
 public:
-	OrderCache() {};
+	OrderCache() { api = NULL; };
+	OrderCache(TDUserApi* api) {
+		this->api = api;
+	}
 private:
+	TDUserApi* api;
+
 	std::map<std::string, CThostFtdcOrderField*> orderDictByRef;
 	std::map<std::string, CThostFtdcOrderField*> orderDictBySysID;
 	std::vector<CThostFtdcOrderField*> orderList;
@@ -168,7 +173,7 @@ public:
 
 		instrumentCache = new InstrumentCache(this);
 		queryCache = new QueryCache(this);
-		orderCache = new(OrderCache);
+		orderCache = new OrderCache(this);
 	};
 
 	friend class QueryCache;
