@@ -77,6 +77,9 @@
     <ClInclude Include="PositionCache.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Cache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="error.xml">
@@ -106,6 +109,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="PositionCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Cache.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

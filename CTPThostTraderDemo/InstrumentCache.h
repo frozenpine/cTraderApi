@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include <stdlib.h>
 #include <vector>
@@ -25,19 +25,19 @@ public:
 protected:
 	~InstrumentCache() {
 		for (auto& ins : instrumentDict) {
-			free(ins.second);
+			if (ins.second) free(ins.second);
 		}
 
 		for (auto& md : marketDataDict) {
-			free(md.second);
+			if (md.second) free(md.second);
 		}
 
 		for (auto& margin : marginRateDict) {
-			free(margin.second);
+			if (margin.second) free(margin.second);
 		}
 
 		for (auto& comm : commRateDict) {
-			free(comm.second);
+			if (comm.second) free(comm.second);
 		}
 	}
 private:

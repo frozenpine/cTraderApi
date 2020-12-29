@@ -163,6 +163,7 @@
     <None Include="setting.ini.example" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cache.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="InstrumentCache.h" />
@@ -180,6 +181,7 @@
     <Xml Include="error.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Cache.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="InstrumentCache.cpp" />
     <ClCompile Include="main.cpp" />
