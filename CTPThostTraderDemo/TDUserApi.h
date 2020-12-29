@@ -1,11 +1,5 @@
 #pragma once
 
-#include <string.h>
-#include <mutex>
-#include <map>
-#include <vector>
-#include <string>
-
 #include "ThostFtdcTraderApi.h"
 #include "QueryCache.h"
 #include "InstrumentCache.h"
