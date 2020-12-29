@@ -315,6 +315,12 @@ void TDUserApi::OnRspQryInstrument(CThostFtdcInstrumentField* pInstrument, CThos
 	}
 
 	if (NULL != pInstrument) { 
+		/*printf(
+			"[%s.%s]: PriceTick[%.2lf] VolumeMultiple[%d]\n", 
+			pInstrument->ExchangeID, pInstrument->InstrumentID, 
+			pInstrument->PriceTick, pInstrument->VolumeMultiple
+		);*/
+
 		instrumentCache->InsertOrAssignInstrument(pInstrument);
 	}
 
@@ -690,7 +696,7 @@ bool InstrumentCache::InsertOrAssignInstrument(CThostFtdcInstrumentField* pInstr
 
 	if (instrumentDict.find(pInstrument->InstrumentID) == instrumentDict.end()) {
 		ins = new(CThostFtdcInstrumentField);
-		instrumentDict.insert_or_assign(ins->InstrumentID, ins);
+		instrumentDict.insert_or_assign(pInstrument->InstrumentID, ins);
 	}
 	else {
 		ins = instrumentDict.at(pInstrument->InstrumentID);
@@ -698,6 +704,7 @@ bool InstrumentCache::InsertOrAssignInstrument(CThostFtdcInstrumentField* pInstr
 
 	assert(ins != NULL);
 	memcpy(ins, pInstrument, sizeof(CThostFtdcInstrumentField));
+	
 	return true;
 }
 
@@ -1161,7 +1168,9 @@ void OrderCache::InsertOrAssignOrder(CThostFtdcOrderField* pOrder)
 
 			orderDictByRef.insert_or_assign(ref, ord);
 
-			orderList.push_back(ord);
+			if (ord->OrderStatus != THOST_FTDC_OST_Unknown) {
+				orderList.push_back(ord);
+			}
 		}
 		else {
 			ord = orderDictByRef.at(ref);
