@@ -107,7 +107,7 @@ int cmdShow(void* api, const std::vector<std::string>& args) {
 
 		// TODO: parse args
 
-		printf("ExchangeID, InstrumentID, Direction, YdPos, Pos\n");
+		printf("ExchangeID, InstrumentID, Direction, YdPos, TdPos\n");
 
 		for (auto pos : apiIns->GetPositions(ExchangeID, ProductID, InstrumentID)) {
 			printf("%s, %s, %c, %d, %d\n",
@@ -171,9 +171,10 @@ int cmdOrderNew(void* api, const std::vector<std::string>& args) {
 
 		if (insList.size() == 1 && (
 				strcmp(insList[0]->ExchangeID, "SHFE") == 0 || 
-				strcmp(insList[0]->ExchangeID, "INE") == 0)) {
+				strcmp(insList[0]->ExchangeID, "INE") == 0))
+		{
 			auto posList = apiIns->GetPositions("", "", args[0]);
-			if (posList.size() == 1 && (posList[0]->Position - posList[0]->YdPosition) > 0) {
+			if (posList.size() == 1 && posList[0]->Position > 0) {
 				comboOffsetFlag = THOST_FTDC_OF_CloseToday;
 			}
 			else {
@@ -210,17 +211,11 @@ int cmdOrderNew(void* api, const std::vector<std::string>& args) {
 }
 
 int cmdOrderModify(void* api, const std::vector<std::string>& args) {
-	CThostFtdcInputOrderActionField ord = { 0 };
-
-	auto apiIns = ((TDUserApi*)api);
-
-	// TODO: 填写改单参数
-
-	return apiIns->ReqOrderAction(&ord);
+	fprintf(stderr, "Not supported by CTP.\n");
+	return Command::CMDInvalidArgs;
 }
 
 int cmdOrderCancel(void* api, const std::vector<std::string>& args) {
-
 	std::string sysIDs = "";
 	std::string orderRefs = "";
 
@@ -352,7 +347,7 @@ int main(int argc, char* argv[]) {
 		"new {instrumentid} {direction} {price} {volume} [close]", cmdOrderNew };
 	CommandDefine orderModifyCommand = { 
 		"modify", "Modify an exist order.", 
-		"", cmdOrderModify };
+		"not supported by CTP system", cmdOrderModify };
 	CommandDefine orderCancelCommand = { 
 		"cancel", "Cancel an exist order.", 
 		"cancel [SysID={id list}] [OrderRef={ref list}]", cmdOrderCancel };
@@ -364,7 +359,7 @@ int main(int argc, char* argv[]) {
 	cli.AddCommand(&orderModifyCommand);
 	cli.AddCommand(&orderCancelCommand);
 
-	cli.RegisterPostCommand(cmdPostWait);
+	// cli.RegisterPostCommand(cmdPostWait);
 
 	api->CreateFtdcTraderApi(flowPath);
 	api->SubscribePrivateTopic(THOST_TERT_QUICK);
