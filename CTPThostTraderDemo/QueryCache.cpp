@@ -200,7 +200,13 @@ int QueryCache::StartQuery(QueryFlag flag, void* qry, bool copyQry)
 }
 
 void QueryCache::FinishQuery(int requestID) {
+	std::unique_lock<std::mutex> locker(g_lock);
+
 	if (qryCache.find(requestID) == qryCache.end()) {
+		fprintf(stderr, "Query request[%d] not found.", requestID);
+		flag = QueryFlag::QryFinished;
+		g_cond.notify_one();
+
 		return;
 	}
 
@@ -220,14 +226,14 @@ void QueryCache::FinishQuery(int requestID) {
 bool QueryCache::chkStatus(long long& timeout)
 {
 	if (flag != QueryFlag::QryFinished) {
-		// fprintf(stderr, "Last query not finished.\n");
+		fprintf(stderr, "Last query not finished.\n");
 		timeout = 0;
 		return false;
 	}
 
 	timeout = get_ms_ts() - lastQryTS;
 	if (timeout < 1000 && qryCount >= qryFreq) {
-		// fprintf(stderr, "Query frequence exceeded.\n");
+		fprintf(stderr, "Query frequence exceeded.\n");
 		return false;
 	}
 

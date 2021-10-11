@@ -119,6 +119,12 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 		);
 
 		setFlag(&login, true);
+
+		CThostFtdcSettlementInfoConfirmField confirm = { 0 };
+		memcpy(confirm.BrokerID, User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		memcpy(confirm.InvestorID, User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
+
+		ReqSettlementInfoConfirm(&confirm);
 	}
 }
 
@@ -194,10 +200,17 @@ void TDUserApi::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField*
 	if (NULL != pSettlementInfoConfirm) {
 		printf("Settlement info confirmed on: %s %s\n", 
 			pSettlementInfoConfirm->ConfirmDate, pSettlementInfoConfirm->ConfirmTime);
-	}
-
-	if (bIsLast) {
 		setFlag(&settlementConfirmed, true);
+	}
+	else {
+		printf("Settlement info not confirmed, querying settlement info.");
+
+		CThostFtdcQrySettlementInfoField qry = { 0 };
+		memcpy(qry.BrokerID, User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		memcpy(qry.InvestorID, User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
+		memcpy(qry.TradingDay, GetTradingDay(), sizeof(TThostFtdcDateType) - 1);
+
+		ReqQrySettlementInfo(&qry);
 	}
 }
 
@@ -258,9 +271,9 @@ void TDUserApi::OnRspQryInstrumentMarginRate(
 	CThostFtdcInstrumentMarginRateField* pInstrumentMarginRate, 
 	CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
-	if (checkRspError("Query instrument margin rate failed[%d]: %s\n", pRspInfo)) {
-		queryCache->FinishQuery(nRequestID);
+	queryCache->FinishQuery(nRequestID);
 
+	if (checkRspError("Query instrument margin rate failed[%d]: %s\n", pRspInfo)) {
 		return;
 	}
 
@@ -274,8 +287,6 @@ void TDUserApi::OnRspQryInstrumentMarginRate(
 		);
 
 		instrumentCache->InsertOrAssignMarginRate(pInstrumentMarginRate);
-
-		queryCache->FinishQuery(nRequestID);
 
 		if (queryAllMarginRate) {
 			instrumentCache->QueryNextMarginRate();
@@ -362,6 +373,7 @@ void TDUserApi::OnRspQryDepthMarketData(CThostFtdcDepthMarketDataField* pDepthMa
 
 void TDUserApi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField* pSettlementInfo, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
+
 	if (checkRspError("Query settlement info failed[%d]: %s\n", pRspInfo)) {
 		queryCache->FinishQuery(nRequestID);
 
@@ -376,12 +388,6 @@ void TDUserApi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField* pSettlemen
 	}
 
 	if (bIsLast) {
-		CThostFtdcSettlementInfoConfirmField confirm = { 0 };
-		memcpy(confirm.BrokerID, User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-		memcpy(confirm.InvestorID, User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
-
-		ReqSettlementInfoConfirm(&confirm);
-
 		queryCache->FinishQuery(nRequestID);
 	}
 }
@@ -407,13 +413,6 @@ void TDUserApi::OnRspQrySettlementInfoConfirm(CThostFtdcSettlementInfoConfirmFie
 
 	if (bIsLast) {
 		queryCache->FinishQuery(nRequestID);
-
-		CThostFtdcQrySettlementInfoField qry = { 0 };
-		memcpy(qry.BrokerID, User.BrokerID, sizeof(TThostFtdcBrokerIDType) - 1);
-		memcpy(qry.InvestorID, User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
-		memcpy(qry.TradingDay, GetTradingDay(), sizeof(TThostFtdcDateType) - 1);
-
-		ReqQrySettlementInfo(&qry);
 	}
 }
 

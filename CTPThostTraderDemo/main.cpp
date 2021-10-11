@@ -405,13 +405,13 @@ int main(int argc, char* argv[]) {
 	// strncpy(qryOdr.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
 	// strncpy(qryOdr.InvestorID, userID, sizeof(TThostFtdcInvestorIDType) - 1);
 	api->ReqQryOrder(&qryOdr);
-	printf("Quering invesot's orders.\n");
+	printf("Quering investor's orders.\n");
 
 	CThostFtdcQryInstrumentField qryIns = { 0 };
 	api->ReqQryInstrument(&qryIns);
 	printf("Quering instrument info.\n");
 
-	// api->QueryMarginRateAll();
+	api->QueryMarginRateAll();
 	// api->QueryCommRateAll();
 
 	CThostFtdcQrySettlementInfoConfirmField settleConfirm = { 0 };
