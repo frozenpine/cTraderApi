@@ -117,7 +117,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>thosttraderapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>thosttraderapi_se.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -169,7 +169,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\libs\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>thosttraderapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>thosttraderapi_se.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -188,13 +188,11 @@
     <ClCompile Include="ThostFtdcTraderApiWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="libs\x64\thosttraderapi.dll" />
-    <None Include="libs\x86\thosttraderapi.dll" />
+    <None Include="libs\x64\thosttraderapi_se.dll" />
     <None Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libs\x64\thosttraderapi.lib" />
-    <Library Include="libs\x86\thosttraderapi.lib" />
+    <Library Include="libs\x64\thosttraderapi_se.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
