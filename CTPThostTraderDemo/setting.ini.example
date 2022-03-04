@@ -14,6 +14,7 @@
 ;Address = 180.166.6.245
 Address = 101.230.73.1
 Port = 51205
+IsFens = 
 
 ; 平台登录信息
 [login_info]

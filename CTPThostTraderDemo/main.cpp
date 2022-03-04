@@ -3,11 +3,16 @@
 #include <iostream>
 #include <regex>
 #include <assert.h>
+#include <direct.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 #include "tools.h"
 #include "ini.h"
 #include "TDUserApi.h"
 #include "Command.h"
+#include "toml.h"
 
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
@@ -274,7 +279,7 @@ bool getValueBool(std::string value) {
 		return false;
 	}
 
-	mINI::INIStringUtil::toLower(value);
+	// mINI::INIStringUtil::toLower(value);
 
 	if (len == 1) {
 		return value.compare("y") == 0 || value.compare("t") == 0;
@@ -293,6 +298,7 @@ bool getValueBool(std::string value) {
 
 int main(int argc, char* argv[]) {
 	printf("CTP API Version: %s impl by CPP.\n", TDUserApi::GetApiVersion());
+	printf("Working directory: %s\n", _getcwd(NULL, 0));
 
 	char* confFile = (char *)"setting.ini";
 
@@ -305,6 +311,34 @@ int main(int argc, char* argv[]) {
 		confFile[argLen] = 0;
 		strncpy(confFile, argv[1], strlen(argv[1]));
 	}
+
+	FILE* fp;
+	char errbuf[200] = {0};
+
+	// 1. Read and parse toml file
+	// fp = fopen(confFile, "r");
+	// if (!fp) {
+	// 	printf("cannot open %s: %s\n", confFile, strerror(errno));
+	// 	exit(1);
+	// }
+	// 
+	// toml_table_t* conf = toml_parse_file(fp, errbuf, sizeof(errbuf));
+	// fclose(fp);
+	// 
+	// if (!conf) {
+	// 	printf("cannot parse: %s\n", errbuf);
+	// 	exit(2);
+	// }
+	// 
+	// toml_table_t* front_info = toml_table_in(conf, "front_info");
+	// if (!front_info) {
+	// 	printf("no [front_info] section");
+	// 	exit(3);
+	// }
+	// 
+	// toml_datum_t address = toml_string_in(front_info, "Address");
+	// toml_datum_t port = toml_int_in(front_info, "Port");
+
 
 	// º”‘ÿ≈‰÷√Œƒº˛
 	// initial config file path.
@@ -326,6 +360,7 @@ int main(int argc, char* argv[]) {
 	// conn string format: tcp://IP:PORT, max length 6+15+1+5+1.
 	char conn[28] = {0};
 	sprintf(conn, "tcp://%s:%s", frontAddr, frontPort);
+	// sprintf(conn, "tcp://%s:%s", address.u.s, port.u.s);
 
 	const char* brokerID = ini["login_info"]["BrokerID"].c_str();
 	const char* userID = ini["login_info"]["UserID"].c_str();

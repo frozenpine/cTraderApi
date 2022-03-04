@@ -160,8 +160,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="error.dtd" />
-    <None Include="libs\x64\thosttraderapi_se.dll" />
-    <None Include="libs\x86\thosttraderapi_se.dll" />
     <None Include="setting.ini" />
     <None Include="setting.ini.example" />
   </ItemGroup>
@@ -178,6 +176,7 @@
     <ClInclude Include="ThostFtdcUserApiDataType.h" />
     <ClInclude Include="ThostFtdcUserApiStruct.h" />
     <ClInclude Include="TDUserApi.h" />
+    <ClInclude Include="toml.h" />
     <ClInclude Include="tools.h" />
   </ItemGroup>
   <ItemGroup>
@@ -192,11 +191,8 @@
     <ClCompile Include="PositionCache.cpp" />
     <ClCompile Include="QueryCache.cpp" />
     <ClCompile Include="TDUserApi.cpp" />
+    <ClCompile Include="toml.c" />
     <ClCompile Include="tools.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="libs\x64\thosttraderapi_se.lib" />
-    <Library Include="libs\x86\thosttraderapi_se.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
