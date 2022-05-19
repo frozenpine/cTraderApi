@@ -53,6 +53,7 @@
     <None Include="libs\x64\thosttraderapi_se.dll">
       <Filter>libs\x64</Filter>
     </None>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="libs\x64\thosttraderapi_se.lib">

@@ -12,7 +12,7 @@
 #include "ini.h"
 #include "TDUserApi.h"
 #include "Command.h"
-#include "toml.h"
+// #include "toml.h"
 
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
@@ -367,6 +367,7 @@ int main(int argc, char* argv[]) {
 	const char* userPass = ini["login_info"]["Password"].c_str();
 	const char* appID = ini["login_info"]["AppID"].c_str();
 	const char* authCode = ini["login_info"]["AuthCode"].c_str();
+	const char* initPassword = ini["login_info"]["InitPassword"].c_str();
 
 	TDUserApi *api = new(TDUserApi);
 
@@ -424,9 +425,26 @@ int main(int argc, char* argv[]) {
 	CThostFtdcReqUserLoginField login = { 0 };
 	strncpy(login.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType)-1);
 	strncpy(login.UserID, userID, sizeof(TThostFtdcUserIDType)-1);
-	strncpy(login.Password, userPass, sizeof(TThostFtdcPasswordType)-1);
+
+	if (strlen(initPassword) != 0) {
+		strncpy(login.Password, initPassword, sizeof(TThostFtdcPasswordType) - 1);
+	}
+	else {
+		strncpy(login.Password, userPass, sizeof(TThostFtdcPasswordType) - 1);
+	}
 	api->ReqUserLogin(&login);
 	printf("Send login: %s, %s\n", brokerID, userID);
+
+	if (strlen(initPassword) != 0) {
+		CThostFtdcUserPasswordUpdateField updPass = { 0 };
+		
+		strncpy(updPass.BrokerID, brokerID, sizeof(TThostFtdcBrokerIDType) - 1);
+		strncpy(updPass.UserID, userID, sizeof(TThostFtdcUserIDType) - 1);
+		strncpy(updPass.OldPassword, initPassword, sizeof(TThostFtdcPasswordType) - 1);
+		strncpy(updPass.NewPassword, userPass, sizeof(TThostFtdcPasswordType) - 1);
+		
+		api->ReqUserPasswordUpdate(&updPass);
+	}
 
 	CThostFtdcQryInvestorPositionField qryPos = { 0 };
 	/* not mandatory */

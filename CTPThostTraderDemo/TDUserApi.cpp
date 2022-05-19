@@ -101,7 +101,13 @@ void TDUserApi::OnRspAuthenticate(CThostFtdcRspAuthenticateField* pRspAuthentica
 void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThostFtdcRspInfoField* pRspInfo, int nRequestID, bool bIsLast)
 {
 	if (checkRspError("Login failed[%d]: %s\n", pRspInfo)) {
-		pApi->Release();
+		// 首次登录需要修改密码
+		if (pRspInfo->ErrorID == 140) {
+			setFlag(&login, true);
+		}
+		else {
+			pApi->Release();
+		}
 
 		return;
 	}
@@ -125,6 +131,30 @@ void TDUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField* pRspUserLogin, CThos
 		memcpy(confirm.InvestorID, User.UserID, sizeof(TThostFtdcInvestorIDType) - 1);
 
 		ReqSettlementInfoConfirm(&confirm);
+	}
+}
+
+void TDUserApi::OnRspUserPasswordUpdate(
+	CThostFtdcUserPasswordUpdateField* pUserPasswordUpdate, 
+	CThostFtdcRspInfoField* pRspInfo, 
+	int nRequestID, bool bIsLast)
+{
+	if (checkRspError("Update password failed[%d]: %s\n", pRspInfo)) {
+		pApi->Release();
+
+		return;
+	}
+
+	if (pUserPasswordUpdate != NULL) {
+		printf(
+			"User[%s.%s] password updated: %s -> %s\n",
+			pUserPasswordUpdate->BrokerID,
+			pUserPasswordUpdate->UserID,
+			pUserPasswordUpdate->OldPassword,
+			pUserPasswordUpdate->NewPassword
+		);
+
+		setFlag(&login, true);
 	}
 }
 
@@ -594,6 +624,8 @@ int TDUserApi::ReqUserLogout(CThostFtdcUserLogoutField* pUserLogout)
 int TDUserApi::ReqUserPasswordUpdate(CThostFtdcUserPasswordUpdateField* pUserPasswordUpdate)
 {
 	waitUntil(&TDUserApi::checkUserLogin, true);
+
+	login = false;
 
 	return pApi->ReqUserPasswordUpdate(pUserPasswordUpdate, ++nRequestID);
 }

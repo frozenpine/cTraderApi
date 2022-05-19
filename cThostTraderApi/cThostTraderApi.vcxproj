@@ -188,6 +188,7 @@
     <ClCompile Include="ThostFtdcTraderApiWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cpp.hint" />
     <None Include="libs\x64\thosttraderapi_se.dll" />
     <None Include="Makefile" />
   </ItemGroup>
