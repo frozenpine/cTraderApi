@@ -22,6 +22,162 @@ const char flowPath[] = "flow/";
 const std::regex floatPattern("\\d*\\.?\\d+");
 const std::regex intPattern("\\d+");
 
+static inline TThostFtdcOrderPriceTypeType parse_price_type(char* value, int& rtn) {
+	switch (hash_(value)) {
+	case hash_compile_time("AnyPrice"):
+		return THOST_FTDC_OPT_AnyPrice;
+	case hash_compile_time("LimitPrice"):
+		return THOST_FTDC_OPT_LimitPrice;
+	case hash_compile_time("BestPrice"):
+		return THOST_FTDC_OPT_BestPrice;
+	case hash_compile_time("LastPrice"):
+		return THOST_FTDC_OPT_LastPrice;
+	case hash_compile_time("LastPricePlusOneTicks"):
+		return THOST_FTDC_OPT_LastPricePlusOneTicks;
+	case hash_compile_time("LastPricePlusTwoTicks"):
+		return THOST_FTDC_OPT_LastPricePlusTwoTicks;
+	case hash_compile_time("LastPricePlusThreeTicks"):
+		return THOST_FTDC_OPT_LastPricePlusThreeTicks;
+	case hash_compile_time("AskPrice1"):
+		return THOST_FTDC_OPT_AskPrice1;
+	case hash_compile_time("AskPrice1PlusOneTicks"):
+		return THOST_FTDC_OPT_AskPrice1PlusOneTicks;
+	case hash_compile_time("AskPrice1PlusTwoTicks"):
+		return THOST_FTDC_OPT_AskPrice1PlusTwoTicks;
+	case hash_compile_time("AskPrice1PlusThreeTicks"):
+		return THOST_FTDC_OPT_AskPrice1PlusThreeTicks;
+	case hash_compile_time("BidPrice1"):
+		return THOST_FTDC_OPT_BidPrice1;
+	case hash_compile_time("BidPrice1PlusOneTicks"):
+		return THOST_FTDC_OPT_BidPrice1PlusOneTicks;
+	case hash_compile_time("BidPrice1PlusTwoTicks"):
+		return THOST_FTDC_OPT_BidPrice1PlusTwoTicks;
+	case hash_compile_time("BidPrice1PlusThreeTicks"):
+		return THOST_FTDC_OPT_BidPrice1PlusThreeTicks;
+	case hash_compile_time("FiveLevelPrice"):
+		return THOST_FTDC_OPT_FiveLevelPrice;
+	default:
+		rtn = Command::CMDInvalidArgs;
+		return 0;
+	}
+}
+
+static inline TThostFtdcDirectionType parse_direction(char* value, int& rtn) {
+	switch (hash_(value)) {
+	case hash_compile_time("Buy"):
+	case hash_compile_time("buy"):
+		return THOST_FTDC_D_Buy;
+	case hash_compile_time("Sell"):
+	case hash_compile_time("sell"):
+		return THOST_FTDC_D_Sell;
+	default:
+		rtn = Command::CMDInvalidArgs;
+		return 0;
+	}
+}
+
+static inline char parse_offset_flag(char* value, int& rtn) {
+	switch (hash_(value)) {
+	case hash_compile_time("Open"):
+	case hash_compile_time("open"):
+		return THOST_FTDC_OF_Open;
+	case hash_compile_time("Close"):
+	case hash_compile_time("close"):
+		return THOST_FTDC_OF_Close;
+	case hash_compile_time("ForceClose"):
+		return THOST_FTDC_OF_ForceClose;
+	case hash_compile_time("CloseToday"):
+		return THOST_FTDC_OF_CloseToday;
+	case hash_compile_time("CloseYesterday"):
+		return THOST_FTDC_OF_CloseYesterday;
+	case hash_compile_time("ForceOff"):
+		return THOST_FTDC_OF_ForceOff;
+	case hash_compile_time("LocalForceClose"):
+		return THOST_FTDC_OF_LocalForceClose;
+	default:
+		rtn = Command::CMDInvalidArgs;
+		return 0;
+	}
+}
+
+static inline char parse_hedge_flag(char* value, int& rtn) {
+	switch (hash_(value)) {
+	case hash_compile_time("Speculation"):
+	case hash_compile_time("speculation"):
+	case hash_compile_time("spec"):
+		return THOST_FTDC_CIDT_Speculation;
+	case hash_compile_time("Arbitrage"):
+	case hash_compile_time("arbitrage"):
+	case hash_compile_time("arbit"):
+		return THOST_FTDC_CIDT_Arbitrage;
+	case hash_compile_time("Hedge"):
+	case hash_compile_time("hedge"):
+		return THOST_FTDC_CIDT_Hedge;
+	case hash_compile_time("MarketMaker"):
+		return THOST_FTDC_CIDT_MarketMaker;
+	default:
+		fprintf(stderr, "Hedege flag value invalid[%s], use default: THOST_FTDC_CIDT_Speculation\n", value);
+		return THOST_FTDC_CIDT_Speculation;
+	}
+}
+
+int fill_order(CThostFtdcInputOrderField& ord, const char *input) {
+	int count = 0;
+	char** arg = split(input, count, '=');
+
+	if (count != 2) {
+		fprintf(stderr, "invalid arg input: %s", input);
+		return Command::CMDInvalidArgs;
+	}
+
+	char* cmd = trim(arg[0]);
+	char* value = trim(arg[1]);
+	int rtn = Command::CMDSucceeded;
+
+	switch (hash_(cmd)) {
+	case hash_compile_time("OrderPriceType"):
+		ord.OrderPriceType = parse_price_type(value, rtn);
+		break;
+	case hash_compile_time("Direction"):
+		ord.Direction = parse_direction(value, rtn);
+		break;
+	case hash_compile_time("OffsetFlag"):
+		ord.CombOffsetFlag[0] = parse_offset_flag(value, rtn);
+		break;
+	case hash_compile_time("HedgeFlag"):
+		ord.CombHedgeFlag[0] = parse_hedge_flag(value, rtn);
+		break;
+	case hash_compile_time("LimitPrice"):
+		if (!std::regex_match(value, floatPattern)) {
+			fprintf(stderr, "price must be a float number.\n");
+			rtn = Command::CMDInvalidArgs;
+		}
+		else {
+			ord.LimitPrice = atof(value);
+		}
+		break;
+	case hash_compile_time("VolumeTotalOriginal"):
+		if (!std::regex_match(value, intPattern)) {
+			fprintf(stderr, "volume must be a int number.\n");
+			rtn = Command::CMDInvalidArgs;
+		}
+		else {
+			ord.VolumeTotalOriginal = atoi(value);
+		}
+		break;
+	case hash_compile_time("TimeCondition"):
+		break;
+	case hash_compile_time("VolumeCondition"):
+		break;
+	case hash_compile_time("MinVolume"):
+		break;
+	case hash_compile_time("InvestUnitID"):
+		break;
+	}
+
+	return rtn;
+}
+
 int cmdVersion(void* api, const std::vector<std::string>& args) {
 	printf("Current API version is: %s\n", ((TDUserApi*)api)->GetApiVersion());
 
@@ -138,79 +294,47 @@ int cmdPostWait(void* api, const std::vector<std::string>& args) {
 }
 
 int cmdOrderNew(void* api, const std::vector<std::string>& args) {
-	if (args.size() < 4) {
-		fprintf(stderr, "lack of args: instrumentid direction price volume\n");
-		return Command::CMDInvalidArgs;
-	}
-
 	auto apiIns = ((TDUserApi*)api);
+	auto instrument_id = args[0].c_str();
+	CThostFtdcInputOrderField ord = { 0 };
 
-	TThostFtdcDirectionType direction;
-	if (args[1] == "0" || args[1] == "buy") {
-		direction = THOST_FTDC_D_Buy;
-	}
-	else if (args[1] == "1" || args[1]=="sell") {
-		direction = THOST_FTDC_D_Sell;
-	}
-	else {
-		fprintf(stderr, "invalid direction input: %s\n", args[1].c_str());
-		return Command::CMDInvalidArgs;
+	for (int idx = 1; idx < args.size(); idx++) {
+		auto rtn = fill_order(ord, args[idx].c_str());
+		
+		if (rtn != Command::CMDSucceeded) {
+			return rtn;
+		}
 	}
 
-	if (!std::regex_match(args[2], floatPattern)) {
-		fprintf(stderr, "price must be a float number.\n");
-		return Command::CMDInvalidArgs;
-	}
-	double price = atof(args[2].c_str());
-
-	if (!std::regex_match(args[3], intPattern)) {
-		fprintf(stderr, "volume must be a int number.\n");
-		return Command::CMDInvalidArgs;
-	}
-	int volume = atoi(args[3].c_str());
-
-	// 
-	char comboOffsetFlag = THOST_FTDC_OF_Open;
-	if (args.size() == 5 && args[4] == "close") {
-		auto insList = apiIns->GetInstruments("", "", args[0]);
+	// 自动判断平今、平昨
+	if (ord.CombOffsetFlag[0] == THOST_FTDC_OF_Close) {
+		auto insList = apiIns->GetInstruments("", "", instrument_id);
 
 		if (insList.size() == 1 && (
 				strcmp(insList[0]->ExchangeID, "SHFE") == 0 || 
 				strcmp(insList[0]->ExchangeID, "INE") == 0))
 		{
 			auto posList = apiIns->GetPositions("", "", args[0]);
+			
 			if (posList.size() == 1 && posList[0]->Position > 0) {
-				comboOffsetFlag = THOST_FTDC_OF_CloseToday;
+				ord.CombOffsetFlag[0] = THOST_FTDC_OF_CloseToday;
 			}
-			else {
-				comboOffsetFlag = THOST_FTDC_OF_Close;
-			}
-		}
-		else {
-			comboOffsetFlag = THOST_FTDC_OF_Close;
 		}
 	}
 
-	CThostFtdcInputOrderField ord = { 0 };
-	
-	/* mandatory fields for a new order */
+	/* mandatory fields for a new order below */
 	strcpy_s(ord.BrokerID, apiIns->User.BrokerID);
 	strcpy_s(ord.UserID, apiIns->User.UserID);
 	strcpy_s(ord.InstrumentID, args[0].c_str());
 	strcpy_s(ord.InvestorID, apiIns->User.UserID);
-	
-	ord.OrderPriceType = THOST_FTDC_OPT_LimitPrice;
-	ord.Direction = direction;
-	ord.LimitPrice = price;
-	ord.VolumeTotalOriginal = volume;
-	
-	ord.CombOffsetFlag[0] = comboOffsetFlag;
-	ord.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;	
-	ord.StopPrice = 0;
-	ord.TimeCondition = THOST_FTDC_TC_GFD;
-	ord.VolumeCondition = THOST_FTDC_VC_AV;
-	ord.ContingentCondition = THOST_FTDC_CC_Immediately;
-	ord.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;
+	// default value handle
+	if (ord.OrderPriceType == 0) ord.OrderPriceType = THOST_FTDC_OPT_LimitPrice;
+	if (ord.CombOffsetFlag[0] == 0) ord.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
+	if (ord.CombHedgeFlag[0] == 0) ord.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;
+	if (ord.TimeCondition == 0) ord.TimeCondition = THOST_FTDC_TC_GFD;
+	if (ord.VolumeCondition == 0) ord.VolumeCondition = THOST_FTDC_VC_AV;
+	if (ord.ContingentCondition == 0) ord.ContingentCondition = THOST_FTDC_CC_Immediately;
+	if (ord.ForceCloseReason == 0) ord.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;
 
 	return apiIns->ReqOrderInsert(&ord);
 }
